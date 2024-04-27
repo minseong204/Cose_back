@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.comment.entity.Comment;
 import com.min204.coseproject.heart.Heart;
-import com.min204.coseproject.route.entity.Course;
+import com.min204.coseproject.course.entity.Course;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

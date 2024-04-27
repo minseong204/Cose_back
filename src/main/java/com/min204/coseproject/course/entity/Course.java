@@ -1,4 +1,4 @@
-package com.min204.coseproject.route.entity;
+package com.min204.coseproject.course.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.min204.coseproject.audit.Auditable;
