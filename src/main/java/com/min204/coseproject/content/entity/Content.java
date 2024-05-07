@@ -6,7 +6,7 @@ import com.min204.coseproject.comment.entity.Comment;
 import com.min204.coseproject.heart.entity.Heart;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.user.entity.User;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -11,8 +11,8 @@ import com.min204.coseproject.heart.mapper.HeartMapper;
 import com.min204.coseproject.heart.repository.HeartRepository;
 import com.min204.coseproject.heart.service.HeartService;
 import com.min204.coseproject.user.entity.User;
-import com.min204.coseproject.user.service.UserService;
-import jakarta.validation.constraints.Positive;
+import com.min204.coseproject.user.service.UserServiceImpl;
+import javax.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,18 +29,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class HeartController {
     private final HeartMapper heartMapper;
     private final HeartService heartService;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final ContentService contentService;
     private final HeartRepository heartRepository;
 
-    @PostMapping("/{userId}/{contentId}/hearts")
+    @PostMapping("/{email}/{contentId}/hearts")
     public ResponseEntity postHeart(
-            @PathVariable("userId") @Positive Long userId,
+            @PathVariable("email") @Positive String email,
             @PathVariable("contentId") @Positive Long contentId
     ) {
-        User user = userService.findUser(userId);
+        User user = userServiceImpl.find(email);
 
-        if (userService.getLoginMember().getUserId() != user.getUserId()) {
+        if (userServiceImpl.getLoginMember().getUserId() != user.getUserId()) {
             throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
         }
 

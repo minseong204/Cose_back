@@ -11,7 +11,7 @@ import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.course.service.CourseService;
 import com.min204.coseproject.response.MultiResponseDto;
 import com.min204.coseproject.response.SingleResponseDto;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

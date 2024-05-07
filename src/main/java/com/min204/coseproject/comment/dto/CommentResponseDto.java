@@ -1,6 +1,6 @@
 package com.min204.coseproject.comment.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CommentResponseDto {
     private long commentId;
-    private long userId;
+    private String email;
     private long contentId;
 
     @NotBlank(message = "게시글 제목을 입력하세요")

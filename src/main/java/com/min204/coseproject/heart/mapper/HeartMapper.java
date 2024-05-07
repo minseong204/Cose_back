@@ -19,7 +19,7 @@ public interface HeartMapper {
         Content content = heart.getContent();
 
         return HeartResponseDto.builder()
-                .userId(user.getUserId())
+                .userId(Long.valueOf(user.getUserId()))
                 .heartId(heart.getHeartId())
                 .contentId(content.getContentId())
                 .heartType(heart.getHeartType().toString())

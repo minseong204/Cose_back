@@ -3,7 +3,7 @@ package com.min204.coseproject.course.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.content.entity.Content;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

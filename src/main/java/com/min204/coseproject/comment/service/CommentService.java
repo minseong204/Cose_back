@@ -8,7 +8,7 @@ import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.repository.UserRepository;
-import com.min204.coseproject.user.service.UserService;
+import com.min204.coseproject.user.service.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,13 +26,13 @@ public class CommentService {
     private final UserRepository userRepository;
     private final ContentService contentService;
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
 
     public Comment createComment(
             Comment comment,
             Long contentId) {
         Content content = contentService.findContent(contentId);
-        User user = userService.getLoginMember();
+        User user = userServiceImpl.getLoginMember();
 
         comment.setUser(user);
         comment.setContent(content);
@@ -49,11 +49,6 @@ public class CommentService {
             Long commentId
     ) {
         Comment findComment = findVerifiedComment(commentId);
-        User writer = userService.findVerifiedUser(findComment.getUser().getUserId());
-        if (userService.getLoginMember().getUserId() != writer.getUserId()) {
-            throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
-        }
-
         Optional.ofNullable(comment.getBody())
                 .ifPresent(findComment::setBody);
 
@@ -74,12 +69,6 @@ public class CommentService {
      * */
     public void deleteComment(long commentId) {
         Comment findComment = findVerifiedComment(commentId);
-
-        User writer = userService.findVerifiedUser(findComment.getUser().getUserId());
-        if (userService.getLoginMember().getUserId() != writer.getUserId()) {
-            throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
-        }
-
         commentRepository.delete(findComment);
     }
 

@@ -1,7 +1,7 @@
 package com.min204.coseproject.response;
 
 import com.min204.coseproject.exception.ExceptionCode;
-import jakarta.validation.ConstraintViolation;
+import javax.validation.ConstraintViolation;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;

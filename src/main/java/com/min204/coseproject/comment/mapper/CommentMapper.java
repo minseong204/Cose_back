@@ -41,14 +41,13 @@ public interface CommentMapper {
 
         return CommentResponseDto.builder()
                 .commentId(comment.getCommentId())
-                .userId(user.getUserId())
+                .email(user.getEmail())
                 .contentId(content.getContentId())
                 .title(content.getTitle())
                 .body(comment.getBody())
                 .nickName(user.getNickname())
                 .createdAt(comment.getCreatedAt())
                 .modifiedAt(comment.getModifiedAt())
-                .image(user.getImage())
                 .build();
     }
 

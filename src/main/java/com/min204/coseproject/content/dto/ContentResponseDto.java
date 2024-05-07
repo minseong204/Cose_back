@@ -1,7 +1,7 @@
 package com.min204.coseproject.content.dto;
 
 import com.min204.coseproject.course.dto.CourseResponseDto;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ContentResponseDto {
     private Long contentId;
-    private Long userId;
+    private String email;
 
     @NotBlank(message = "게시글 제목을 입력해야 합니다.")
     private String title;

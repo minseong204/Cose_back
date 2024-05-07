@@ -13,6 +13,7 @@ import com.min204.coseproject.course.dto.CourseResponseDto;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.user.entity.User;
+import com.min204.coseproject.user.entity.UserPhoto;
 import org.mapstruct.Mapper;
 
 import java.util.Collections;
@@ -49,11 +50,10 @@ public interface ContentMapper {
 
         return ContentResponseDto.builder()
                 .contentId(content.getContentId())
-                .userId(user.getUserId())
+                .email(user.getEmail())
                 .title(content.getTitle())
                 .heartCount(content.getHeartCount())
                 .viewCount(content.getViewCount())
-                .image(user.getImage())
                 .createdAt(content.getCreatedAt())
                 .modifiedAt(content.getModifiedAt())
                 .courses(coursesToCourseResponseDtos(content.getCourses()))
@@ -98,14 +98,13 @@ public interface ContentMapper {
 
         return ContentAllResponseDto.builder()
                 .contentId(content.getContentId())
-                .userId(user.getUserId())
+                .email(user.getEmail())
                 .nickName(user.getNickname())
                 .title(content.getTitle())
                 .heartCount(content.getHeartCount())
                 .comments(commentsToCommentResponseDtos(comments))
                 .createdAt(content.getCreatedAt())
                 .modifiedAt(content.getModifiedAt())
-                .image(user.getImage())
                 .courses(coursesToCourseResponseDtos(courseRepository.findAllByContentId(content.getContentId())))
                 .viewCount(content.getViewCount())
                 .build();
@@ -116,11 +115,10 @@ public interface ContentMapper {
                 .map(comment -> CommentResponseDto.builder()
                         .commentId(comment.getCommentId())
                         .contentId(comment.getContent().getContentId())
-                        .userId(comment.getUser().getUserId())
+                        .email(comment.getUser().getEmail())
                         .body(comment.getBody())
                         .createdAt(comment.getCreatedAt())
                         .modifiedAt(comment.getModifiedAt())
-                        .image(comment.getUser().getImage())
                         .title(comment.getContent().getTitle())
                         .nickName(comment.getUser().getNickname())
                         .build())

@@ -4,7 +4,7 @@ import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.constant.HeartType;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.user.entity.User;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

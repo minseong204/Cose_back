@@ -1,7 +1,7 @@
 package com.min204.coseproject.validator;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 import org.springframework.util.StringUtils;
 
 public class NotSpaceValidator implements ConstraintValidator<NotSpace, String> {

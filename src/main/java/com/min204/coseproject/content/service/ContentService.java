@@ -12,7 +12,7 @@ import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.response.SingleResponseDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.repository.UserRepository;
-import com.min204.coseproject.user.service.UserService;
+import com.min204.coseproject.user.service.UserServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,22 +22,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.OptionalInt;
 
 @Service
 public class ContentService {
     private final UserRepository userRepository;
     private final ContentRepository contentRepository;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final ContentMapper contentMapper;
     private final CommentRepository commentRepository;
     private final CourseService courseService;
     private final CourseRepository courseRepository;
 
-    public ContentService(UserRepository userRepository, ContentRepository contentRepository, UserService userService, ContentMapper contentMapper, CommentRepository commentRepository, CourseService courseService, CourseRepository courseRepository) {
+    public ContentService(UserRepository userRepository, ContentRepository contentRepository, UserServiceImpl userServiceImpl, ContentMapper contentMapper, CommentRepository commentRepository, CourseService courseService, CourseRepository courseRepository) {
         this.userRepository = userRepository;
         this.contentRepository = contentRepository;
-        this.userService = userService;
+        this.userServiceImpl = userServiceImpl;
         this.contentMapper = contentMapper;
         this.commentRepository = commentRepository;
         this.courseService = courseService;
@@ -45,18 +44,13 @@ public class ContentService {
     }
 
     public Content createContent(Content content) {
-        content.setUser(userService.getLoginMember());
+        content.setUser(userServiceImpl.getLoginMember());
 
         return contentRepository.save(content);
     }
 
     public Content updateContent(Content content) {
         Content findContent = findVerifiedContent(content.getContentId());
-
-        User writer = userService.findVerifiedUser(findContent.getUser().getUserId());
-        if (userService.getLoginMember().getUserId() != writer.getUserId()) {
-            throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
-        }
 
         Optional.ofNullable(content.getTitle())
                 .isPresent();
@@ -78,16 +72,11 @@ public class ContentService {
 
     public void deleteContent(Long contentId) {
         Content findContent = findVerifiedContent(contentId);
-
-        User writer = userService.findVerifiedUser(findContent.getUser().getUserId());
-        if (userService.getLoginMember().getUserId() != writer.getUserId()) {
-            throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
-        }
         contentRepository.delete(findContent);
     }
 
-    public User findVerifiedUser(Long userId) {
-        Optional<User> optionalUser = userRepository.findById(userId);
+    public User findVerifiedUser(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
         User findUser =
                 optionalUser.orElseThrow(() ->
                         new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
