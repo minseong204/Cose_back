@@ -8,7 +8,7 @@ import com.min204.coseproject.content.dto.UserContentResponseDto;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.course.repository.CourseRepository;
-import com.min204.coseproject.heart.Heart;
+import com.min204.coseproject.heart.entity.Heart;
 import com.min204.coseproject.heart.dto.HeartListDto;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.heart.repository.HeartRepository;

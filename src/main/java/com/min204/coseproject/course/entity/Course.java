@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Getter
 @Setter
 @Entity
@@ -39,7 +40,7 @@ public class Course extends Auditable {
     @Column(nullable = false)
     private String address;
 
-    public Route(
+    public Course(
             String body,
             String place,
             double x,
@@ -51,5 +52,10 @@ public class Course extends Auditable {
         this.x = x;
         this.y = y;
         this.address = address;
+    }
+
+    public void addContent(Content content) {
+        this.content = content;
+        content.getCourses().add(this);
     }
 }

@@ -33,8 +33,8 @@ public class OAuth2UserSuccessHandler extends SimpleUrlAuthenticationSuccessHand
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        String email;
-        String clientId;
+        String email = null;
+        String clientId = null;
 
         var oAuth2User = (OAuth2User) authentication.getPrincipal();
         Map<String, Object> attributes = oAuth2User.getAttributes();
@@ -46,7 +46,6 @@ public class OAuth2UserSuccessHandler extends SimpleUrlAuthenticationSuccessHand
         }
 
         String password = userRepository.findByEmail(email).get().getPassword();
-
         log.info("User Email : {}", email);
 
         redirect(request, response, email, password.equals(clientId));

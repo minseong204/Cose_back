@@ -23,7 +23,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -91,7 +95,7 @@ public class UserService {
         }
     }
 
-    private User findVerifiedUser(long userId) {
+    public User findVerifiedUser(long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
         User findUser = optionalUser.orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
 
@@ -125,5 +129,18 @@ public class UserService {
         return new ResponseEntity<>(
                 new SingleResponseDto<>(userAllResponseDto), HttpStatus.OK
         );
+    }
+
+    public void saveFile(String dir, String filename, MultipartFile file) throws Exception {
+        Path uploadPath = Paths.get(dir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        try {
+            Path filePath = uploadPath.resolve(filename);
+            file.transferTo(filePath);
+        } catch (Exception e) {
+            throw new Exception("Could not store the file. Error: " + e.getMessage());
+        }
     }
 }

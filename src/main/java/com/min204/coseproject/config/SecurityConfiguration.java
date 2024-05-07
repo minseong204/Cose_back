@@ -1,75 +1,90 @@
 package com.min204.coseproject.config;
 
-import com.min204.coseproject.auth.filter.JwtAuthenticationFilter;
 import com.min204.coseproject.auth.filter.JwtVerificationFilter;
-import com.min204.coseproject.auth.handler.UserAccessDeniedHandler;
-import com.min204.coseproject.auth.handler.UserAuthenticationEntryPoint;
-import com.min204.coseproject.auth.handler.*;
+import com.min204.coseproject.auth.handler.OAuth2UserSuccessHandler;
+import com.min204.coseproject.auth.handler.UserAuthenticationFailureHandler;
 import com.min204.coseproject.auth.jwt.JwtTokenizer;
-import com.min204.coseproject.auth.utils.CustomAuthorityUtils;
 import com.min204.coseproject.auth.utils.RedisUtil;
 import com.min204.coseproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+@Configurable
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final JwtVerificationFilter jwtVerificationFilter;
     private final JwtTokenizer jwtTokenizer;
-    private final CustomAuthorityUtils authorityUtils;
-    private final UserRepository userRepository;
+    private final DefaultOAuth2UserService oAuth2UserService;
     private final RedisUtil redisUtil;
+    private final UserRepository userRepository;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
-                .cors()
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .formLogin().disable()
-                .httpBasic().disable()
-                .logout()
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(new UserAuthenticationEntryPoint())
-                .accessDeniedHandler(new UserAccessDeniedHandler())
-                .and()
-                .authorizeRequests(authorize -> authorize
-                        .antMatchers(HttpMethod.GET, "/users/emailCheck/*").permitAll()
-                        .antMatchers(HttpMethod.POST, "/users/", "/users/login").permitAll()
-                        .antMatchers(HttpMethod.GET, "/users/*/info").permitAll()
-                        .antMatchers(HttpMethod.PATCH, "/users/*").hasRole("USER")
-                        .antMatchers(HttpMethod.GET, "/users/**").hasAnyRole("USER", "ADMIN")
-                        .antMatchers(HttpMethod.GET, "/contents/**").permitAll()
-                        .antMatchers(HttpMethod.DELETE, "/users/**").hasRole("USER")
-                        .antMatchers(HttpMethod.POST, "/contents/").hasRole("USER")
-                        .antMatchers(HttpMethod.PATCH, "/contents/**").hasRole("USER")
-                        .antMatchers(HttpMethod.POST, "/comments/**").hasRole("USER")
-                        .antMatchers(HttpMethod.PATCH, "/comments/**").hasRole("USER")
-                        .antMatchers(HttpMethod.POST, "**/hearts").hasRole("USER")
-                        .antMatchers(HttpMethod.DELETE).hasRole("USER")
+    protected SecurityFilterChain configurer(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .cors(cors -> cors
+                        .configurationSource(corsConfigurationSource())
+                )
+                .csrf(CsrfConfigurer::disable)
+                .httpBasic(HttpBasicConfigurer::disable)
+                .sessionManagement(sessionManagement -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                )
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(HttpMethod.GET, "/", "/users/email-check", "/users/*/info").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users/", "/users/login", "/users/logout").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/users/*", "/contents/**", "/comments/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/users/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/contents/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/contents/", "/comments/**", "**/hearts").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE).hasRole("USER")
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(endpoint -> endpoint.baseUri("/api/v1/auth/oauth2"))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/oauth2/callback/*"))
+                        .userInfoEndpoint(endpoint -> endpoint.userService(oAuth2UserService))
                         .successHandler(new OAuth2UserSuccessHandler(jwtTokenizer, userRepository, redisUtil))
-                )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtVerificationFilter(), JwtAuthenticationFilter.class);
 
-        return http.build();
+                )
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint((AuthenticationEntryPoint) new UserAuthenticationFailureHandler()))
+                .addFilterBefore(jwtVerificationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return httpSecurity.build();
+    }
+
+    @Bean
+    protected CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.addAllowedOrigin("*");
+        corsConfiguration.addAllowedMethod("*");
+        corsConfiguration.addAllowedHeader("*");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+
+        return source;
     }
 
     @Bean
@@ -77,20 +92,6 @@ public class SecurityConfiguration {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        AuthenticationManager authenticationManager = authenticationManagerBean();
-        return new JwtAuthenticationFilter(authenticationManager, jwtTokenizer, redisUtil);
-    }
 
-    @Bean
-    public JwtVerificationFilter jwtVerificationFilter() {
-        return new JwtVerificationFilter(jwtTokenizer, authorityUtils, redisUtil);
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManagerBean() {
-        // Configure and return the AuthenticationManager instance
-    }
 
 }

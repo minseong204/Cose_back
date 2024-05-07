@@ -5,7 +5,7 @@ import com.min204.coseproject.comment.entity.Comment;
 import com.min204.coseproject.constant.LoginType;
 import com.min204.coseproject.constant.UserStatus;
 import com.min204.coseproject.content.entity.Content;
-import com.min204.coseproject.heart.Heart;
+import com.min204.coseproject.heart.entity.Heart;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

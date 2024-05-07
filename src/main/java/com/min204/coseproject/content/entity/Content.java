@@ -3,8 +3,9 @@ package com.min204.coseproject.content.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.comment.entity.Comment;
-import com.min204.coseproject.heart.Heart;
+import com.min204.coseproject.heart.entity.Heart;
 import com.min204.coseproject.course.entity.Course;
+import com.min204.coseproject.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,6 +50,10 @@ public class Content extends Auditable {
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Course> courses = new ArrayList<>();
+
+    @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "USER_ID")
+    private User user;
 
     public void addHeart(Heart heart) {
         hearts.add(heart);

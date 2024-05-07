@@ -9,7 +9,7 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper(componentModel = "sursepring")
+@Mapper(componentModel = "spring")
 public interface CourseMapper {
 
     default Course coursePostDtoToCourse(CoursePostDto requestBody) {

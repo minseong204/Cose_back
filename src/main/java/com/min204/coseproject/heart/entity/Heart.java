@@ -1,4 +1,4 @@
-package com.min204.coseproject.heart;
+package com.min204.coseproject.heart.entity;
 
 import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.constant.HeartType;
