@@ -12,13 +12,13 @@ import java.security.NoSuchAlgorithmException;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users/email")
+@RequestMapping("/auth/email")
 public class AuthEmailController {
     private final AuthEmailService authEmailService;
 
-    @GetMapping("/{email_address}/authcode")
-    public ResponseEntity<String> sendEmailPath(@PathVariable String email_address) throws MessagingException {
-        authEmailService.sendEmail(email_address);
+    @GetMapping("/{email_addr}/authcode")
+    public ResponseEntity<String> sendEmailPath(@PathVariable String email_addr) throws MessagingException {
+        authEmailService.sendEmail(email_addr);
         return ResponseEntity.ok("이메일을 확인하세요");
     }
 

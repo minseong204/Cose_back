@@ -18,11 +18,11 @@ import java.util.List;
 @Setter
 @Entity
 @NoArgsConstructor
-@Table(name = "CONTENTS")
+@Table(name = "contents")
 public class Content extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CONTENT_ID")
+    @Column(name = "content_id")
     private Long contentId;
 
     @Column(nullable = false)
@@ -52,7 +52,7 @@ public class Content extends Auditable {
     private List<Course> courses = new ArrayList<>();
 
     @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "USER_ID")
+    @JoinColumn(name = "user_id")
     private User user;
 
     public void addHeart(Heart heart) {

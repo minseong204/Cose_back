@@ -26,16 +26,15 @@ public class AuthEmailService {
     private String configEmail;
 
     private String createdCode() {
-        int leftLimit = 48; // number '0'
-        int rightLimit = 122; // alphabet 'z'
-        int targetStringLength = 6;
+        StringBuilder certificationNumber = new StringBuilder();
+        int targetStringLength = 4;
         Random random = new Random();
 
-        return random.ints(leftLimit, rightLimit + 1)
-                .filter(i -> (i <=57 || i >=65) && (i <= 90 || i>= 97))
+        return random.ints(48, 58)
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+
     }
 
     private String setContext(String code) {

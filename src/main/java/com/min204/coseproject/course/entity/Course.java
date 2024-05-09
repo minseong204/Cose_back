@@ -13,16 +13,16 @@ import lombok.Setter;
 @Setter
 @Entity
 @NoArgsConstructor
-@Table(name = "COURSES")
+@Table(name = "courses")
 public class Course extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "COURSE_ID")
+    @Column(name = "course_id")
     private Long courseId;
 
     @ManyToOne
     @JsonBackReference
-    @JoinColumn(name = "CONTENT_ID")
+    @JoinColumn(name = "content_id")
     private Content content;
 
     @Column(nullable = false)

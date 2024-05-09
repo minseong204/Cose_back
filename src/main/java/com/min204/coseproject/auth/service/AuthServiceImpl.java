@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -44,11 +45,11 @@ public class AuthServiceImpl implements AuthService {
         return userDao.save(user);
     }
 
-    @Override
+    @Transactional
     public Optional<TokenInfo> login(String email, String password) {
         User user = userDao.findByEmail(email);
 
-        if (encoder.matches(password, user.getPassword()) == true) {
+        if (encoder.matches(password, user.getPassword())==true) {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, user.getPassword());
 
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
@@ -63,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public TokenInfo reissueTokens(String refreshToken, ReissueTokensRequestDto reissueTokensRequestDto) {
         User user = userDao.findByEmail(reissueTokensRequestDto.getEmail());
         if (jwtTokenProvider.validateToken(refreshToken) && refreshToken.equals(user.getRefreshToken())) {
