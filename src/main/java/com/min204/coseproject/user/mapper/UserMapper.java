@@ -1,100 +1,53 @@
 package com.min204.coseproject.user.mapper;
 
-import com.min204.coseproject.comment.dto.UserCommentResponse;
-import com.min204.coseproject.comment.entity.Comment;
-import com.min204.coseproject.comment.repository.CommentRepository;
-import com.min204.coseproject.content.dto.ContentCourseResponseDto;
-import com.min204.coseproject.content.dto.UserContentResponseDto;
-import com.min204.coseproject.content.entity.Content;
-import com.min204.coseproject.content.repository.ContentRepository;
-import com.min204.coseproject.course.repository.CourseRepository;
-import com.min204.coseproject.heart.Heart;
-import com.min204.coseproject.heart.dto.HeartListDto;
-import com.min204.coseproject.course.entity.Course;
-import com.min204.coseproject.heart.repository.HeartRepository;
-import com.min204.coseproject.user.dto.UserAllResponseDto;
-import com.min204.coseproject.user.dto.UserPatchDto;
-import com.min204.coseproject.user.dto.UserPostDto;
-import com.min204.coseproject.user.dto.UserResponseDto;
+import com.min204.coseproject.user.dto.res.ResponseUserInfoDto;
 import com.min204.coseproject.user.entity.User;
-import org.mapstruct.Mapper;
+import com.min204.coseproject.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
-@Mapper(componentModel = "spring")
-public interface UserMapper {
-    User userPostDtoToUser(UserPostDto userPostDto);
+@Component
+@RequiredArgsConstructor
+public class UserMapper {
+    private final UserService userService;
 
-    User userPatchDtoToUser(UserPatchDto userPatchDto);
-
-    UserResponseDto userToUserResponseDto(User user);
-
-    default UserAllResponseDto InfoResponse(User user, ContentRepository contentRepository, CommentRepository commentRepository, HeartRepository heartRepository, CourseRepository courseRepository) {
-        List<Content> contents = contentRepository.findAllByUserId(user.getUserId());
-        Collections.reverse(contents);
-        List<Comment> comments = commentRepository.findAllByUserId(user.getUserId());
-        Collections.reverse(comments);
-        List<Heart> hearts = heartRepository.findAllByUserId(user.getUserId());
-        Collections.reverse(hearts);
-
-        return UserAllResponseDto.builder()
-                .userId(user.getUserId())
+    /*
+     * 로그인 응답객체
+     * */
+    public ResponseUserInfoDto toResponse(User user, List<Map<String, Object>> userPhoto) {
+        return ResponseUserInfoDto.builder()
                 .email(user.getEmail())
-                .password(user.getPassword())
                 .nickname(user.getNickname())
-                .image(user.getImage())
-                .createdAt(user.getCreatedAt())
-                .modifiedAt(user.getModifiedAt())
-                .comments(commentsToCommentResponseDtos(comments))
-                .contents(contentsToContentResponseDtos(contents, courseRepository))
-                .hearts(heartsToHeartResponseDtos(hearts))
+                .userPhoto(userPhoto)
                 .build();
     }
 
-    default List<UserCommentResponse> commentsToCommentResponseDtos(List<Comment> comments) {
-        return comments.stream()
-                .map(comment -> UserCommentResponse.builder()
-                        .commentId(comment.getCommentId())
-                        .contentId(comment.getContent().getContentId())
-                        .title(comment.getContent().getTitle())
-                        .createdAt(comment.getCreatedAt())
-                        .modifiedAt(comment.getModifiedAt())
-                        .body(comment.getBody())
-                        .build())
-                .collect(Collectors.toList());
+    /*
+     * 사진 없이 로그인 응답객체
+     * */
+    public ResponseUserInfoDto toResponse(User user) {
+        return ResponseUserInfoDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .build();
     }
 
-    default List<UserContentResponseDto> contentsToContentResponseDtos(List<Content> contents, CourseRepository courseRepository) {
-        return contents.stream()
-                .map(content -> UserContentResponseDto.builder()
-                        .contentId(content.getContentId())
-                        .title(content.getTitle())
-                        .createdAt(content.getCreatedAt())
-                        .modifiedAt(content.getModifiedAt())
-                        .courses(coursesToCourseResponseDtos(courseRepository.findAllByContentId(content.getContentId())))
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    default List<ContentCourseResponseDto> coursesToCourseResponseDtos(List<Course> courses) {
-        return courses.stream()
-                .map(course -> ContentCourseResponseDto.builder()
-                        .place(course.getPlace())
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    default List<HeartListDto> heartsToHeartResponseDtos(List<Heart> hearts) {
-        return hearts.stream()
-                .map(heart -> HeartListDto.builder()
-                        .contentId(heart.getContent().getContentId())
-                        .title(heart.getContent().getTitle())
-                        .heartType(heart.getHeartType())
-                        .createdAt(heart.getCreatedAt())
-                        .modifiedAt(heart.getModifiedAt())
-                        .build())
-                .collect(Collectors.toList());
+    /*
+     * 회원 전체 조회 응답객체
+     * */
+    public List<ResponseUserInfoDto> toResponse(List<User> users) {
+        List<ResponseUserInfoDto> responseUserInfoDtos = new ArrayList<>();
+        for (User user : users) {
+            ResponseUserInfoDto responseUserInfoDto = ResponseUserInfoDto.builder()
+                    .email(user.getEmail())
+                    .nickname(user.getNickname())
+                    .build();
+            responseUserInfoDtos.add(responseUserInfoDto);
+        }
+        return responseUserInfoDtos;
     }
 }

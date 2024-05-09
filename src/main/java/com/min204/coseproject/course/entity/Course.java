@@ -3,25 +3,26 @@ package com.min204.coseproject.course.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.content.entity.Content;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
-@Table(name = "COURSES")
+@Table(name = "courses")
 public class Course extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "COURSE_ID")
+    @Column(name = "course_id")
     private Long courseId;
 
     @ManyToOne
     @JsonBackReference
-    @JoinColumn(name = "CONTENT_ID")
+    @JoinColumn(name = "content_id")
     private Content content;
 
     @Column(nullable = false)
@@ -39,7 +40,7 @@ public class Course extends Auditable {
     @Column(nullable = false)
     private String address;
 
-    public Route(
+    public Course(
             String body,
             String place,
             double x,
@@ -51,5 +52,10 @@ public class Course extends Auditable {
         this.x = x;
         this.y = y;
         this.address = address;
+    }
+
+    public void addContent(Content content) {
+        this.content = content;
+        content.getCourses().add(this);
     }
 }

@@ -3,7 +3,7 @@ package com.min204.coseproject.comment.entity;
 import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.user.entity.User;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "COMMENTS")
+@Table(name = "comments")
 public class Comment extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,11 +22,11 @@ public class Comment extends Auditable {
     private String body;
 
     @ManyToOne
-    @JoinColumn(name = "USER_ID")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "CONTENT_ID")
+    @JoinColumn(name = "content_id")
     private Content content;
 
     public Comment(String body) {
