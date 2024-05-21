@@ -36,6 +36,10 @@ public class SecurityConfig {
                 .antMatchers("/comments/**").permitAll()
                 .antMatchers("**/hearts").hasRole("USER")
                 .antMatchers("/email/**").permitAll()
+                .antMatchers("/api/auth/**").permitAll()
+                .antMatchers("/api/auth/kakao/**").permitAll()
+                .antMatchers("/oauth/callback/kakao").permitAll()
+                .antMatchers("/v1/auth/kakao").permitAll()
                 .anyRequest().authenticated();
 //                .and()
 //                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

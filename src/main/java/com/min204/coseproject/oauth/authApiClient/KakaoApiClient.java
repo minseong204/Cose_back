@@ -6,18 +6,19 @@ import com.min204.coseproject.oauth.dto.oAuthLoginParams.OAuthLoginParams;
 import com.min204.coseproject.oauth.entity.OAuthProvider;
 import com.min204.coseproject.oauth.tokens.KakaoTokens;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class KakaoApiClient implements OAuthApiClient {
+
     private static final String GRANT_TYPE = "authorization_code";
 
     @Value("${oauth.kakao.url.auth}")

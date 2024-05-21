@@ -30,6 +30,9 @@ public class CourseController {
         this.courseMapper = courseMapper;
     }
 
+    /*
+     * 코스 생성
+     * */
     @PostMapping("/{contentId}/courses")
     public ResponseEntity postCourse(@PathVariable("contentId") Long contentId,
                                      @Valid @RequestBody CoursePostDto requestBody) {
