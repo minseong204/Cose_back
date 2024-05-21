@@ -1,6 +1,9 @@
 package com.min204.coseproject.course.service;
 
 import com.min204.coseproject.content.entity.Content;
+import com.min204.coseproject.content.repository.ContentRepository;
+import com.min204.coseproject.course.dto.CoursePostDto;
+import com.min204.coseproject.course.mapper.CourseMapper;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.course.entity.Course;
@@ -17,12 +20,26 @@ import java.util.stream.Collectors;
 @Service
 public class CourseService {
     private final CourseRepository courseRepository;
+    private final CourseMapper courseMapper;
+    private final ContentRepository contentRepository;
 
-    public CourseService(CourseRepository courseRepository) {
+    public CourseService(CourseRepository courseRepository, CourseMapper courseMapper, ContentRepository contentRepository) {
         this.courseRepository = courseRepository;
+        this.courseMapper = courseMapper;
+        this.contentRepository = contentRepository;
     }
 
     public Course createCourse(Course course) {
+        return courseRepository.save(course);
+    }
+
+    public Course createCourse(CoursePostDto courseDto) {
+        Course course = courseMapper.coursePostDtoToCourse(courseDto);
+        if (courseDto.getContentId() != null) {
+            Content content = contentRepository.findById(courseDto.getContentId())
+                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CONTENT_NOT_FOUND));
+            course.setContent(content);
+        }
         return courseRepository.save(course);
     }
 

@@ -73,6 +73,7 @@ public class UserController {
     /*
      * 회원 정보 수정
      * */
+    @PatchMapping
     public ResponseEntity<ResBodyModel> update(@RequestBody UserRequestDto requestUserSignUpDto) {
         User user = userService.update(requestUserSignUpDto);
         ResponseUserInfoDto responseUserInfoDto = userMapper.toResponse(user);

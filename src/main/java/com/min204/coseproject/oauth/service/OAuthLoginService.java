@@ -9,6 +9,7 @@ import com.min204.coseproject.oauth.repository.OAuthUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -29,7 +30,8 @@ public class OAuthLoginService {
         return authTokensGenerator.generate(userId);
     }
 
-    private Long findOrCreateUser(OAuthInfoResponse oAuthInfoResponse) {
+    @Transactional
+    public Long findOrCreateUser(OAuthInfoResponse oAuthInfoResponse) {
         return oAuthUserRepository.findByEmail(oAuthInfoResponse.getEmail())
                 .map(OAuthUser::getId)
                 .orElseGet(() -> {
