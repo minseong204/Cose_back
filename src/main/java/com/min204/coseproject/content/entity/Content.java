@@ -34,22 +34,14 @@ public class Content extends Auditable {
     @Column(nullable = false)
     private int heartCount = 0;
 
-    @Column(nullable = false)
-    private int amount = 0;
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
+    private List<Course> courses = new ArrayList<>();
 
-    @Column(nullable = false)
-    private String travelDate;
-
-    @OrderBy("heartId")
     @OneToMany(mappedBy = "content", cascade = CascadeType.REMOVE)
     private List<Heart> hearts = new ArrayList<>();
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<Course> courses = new ArrayList<>();
 
     @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "user_id")
@@ -57,5 +49,10 @@ public class Content extends Auditable {
 
     public void addHeart(Heart heart) {
         hearts.add(heart);
+    }
+
+    public void addCourse(Course course) {
+        courses.add(course);
+        course.setContent(this);
     }
 }

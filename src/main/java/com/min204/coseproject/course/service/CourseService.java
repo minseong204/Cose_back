@@ -1,32 +1,29 @@
 package com.min204.coseproject.course.service;
 
-import com.min204.coseproject.content.entity.Content;
-import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.course.dto.CoursePostDto;
+import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.course.mapper.CourseMapper;
+import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
-import com.min204.coseproject.course.entity.Course;
-import com.min204.coseproject.course.repository.CourseRepository;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
-    private final ContentRepository contentRepository;
 
-    public CourseService(CourseRepository courseRepository, CourseMapper courseMapper, ContentRepository contentRepository) {
+    public CourseService(CourseRepository courseRepository, CourseMapper courseMapper) {
         this.courseRepository = courseRepository;
         this.courseMapper = courseMapper;
-        this.contentRepository = contentRepository;
     }
 
     public Course createCourse(Course course) {
@@ -35,48 +32,24 @@ public class CourseService {
 
     public Course createCourse(CoursePostDto courseDto) {
         Course course = courseMapper.coursePostDtoToCourse(courseDto);
-        if (courseDto.getContentId() != null) {
-            Content content = contentRepository.findById(courseDto.getContentId())
-                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CONTENT_NOT_FOUND));
-            course.setContent(content);
-        }
         return courseRepository.save(course);
-    }
-
-    public void deleteCourse(Content content) {
-        Long contentId = content.getContentId();
-
-        List<Course> courses = courseRepository.findAllByContentId(contentId);
-
-        courses.stream().forEach(course -> courseRepository.delete(course));
     }
 
     public Course updateCourse(Long courseId, Course course) {
         Course findCourse = findVerifiedCourse(courseId);
 
-        Optional.ofNullable(course.getBody()).ifPresent(findCourse::setBody);
+        Optional.ofNullable(course.getDescription()).ifPresent(findCourse::setDescription);
+        Optional.ofNullable(course.getPlaces()).ifPresent(findCourse::setPlaces);
 
         return courseRepository.save(findCourse);
     }
 
-    public List<Course> findCourses() {
-        return courseRepository.findAll();
+    public Course findCourse(Long courseId) {
+        return findVerifiedCourse(courseId);
     }
 
     public Page<Course> findCourses(int page, int size) {
-        return courseRepository.findAll(PageRequest.of(page, size, Sort.by("placeId").descending()));
-    }
-
-    public List<Course> findCoursesByContentId(Long contentId) {
-        return courseRepository.findAllByContentId(contentId);
-    }
-
-    public List<Course> createCourses(List<Course> courses) {
-        return courses.stream().map(course -> courseRepository.save(course)).collect(Collectors.toList());
-    }
-
-    public Course findCourse(Long courseId) {
-        return findVerifiedCourse(courseId);
+        return courseRepository.findAll(PageRequest.of(page, size, Sort.by("courseId").descending()));
     }
 
     public void deleteCourse(Long courseId) {
@@ -84,11 +57,13 @@ public class CourseService {
         courseRepository.delete(findCourse);
     }
 
-    public Course findVerifiedCourse(Long courseId) {
-        Optional<Course> optionalCourse = courseRepository.findByCourseId(courseId);
-        Course findCourse = optionalCourse.orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
+    public List<Course> findCoursesByContentId(Long contentId) {
+        return courseRepository.findAllByContent_ContentId(contentId);
+    }
 
-        return findCourse;
+    private Course findVerifiedCourse(Long courseId) {
+        Optional<Course> optionalCourse = courseRepository.findById(courseId);
+        return optionalCourse.orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
     }
 }

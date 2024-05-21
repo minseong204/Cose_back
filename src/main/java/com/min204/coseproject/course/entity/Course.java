@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,37 +27,14 @@ public class Course extends Auditable {
     @JoinColumn(name = "content_id")
     private Content content;
 
-    @Column(nullable = false)
-    private String body;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Place> places = new ArrayList<>();
 
     @Column(nullable = false)
-    private String place;
+    private String description;
 
-    @Column(nullable = false)
-    private double x;
-
-    @Column(nullable = false)
-    private double y;
-
-    @Column(nullable = false)
-    private String address;
-
-    public Course(
-            String body,
-            String place,
-            double x,
-            double y,
-            String address
-    ) {
-        this.body = body;
-        this.place = place;
-        this.x = x;
-        this.y = y;
-        this.address = address;
-    }
-
-    public void addContent(Content content) {
-        this.content = content;
-        content.getCourses().add(this);
+    public void addPlace(Place place) {
+        this.places.add(place);
+        place.setCourse(this);
     }
 }
