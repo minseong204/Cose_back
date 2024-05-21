@@ -5,19 +5,17 @@ import com.min204.coseproject.content.dto.ContentPostDto;
 import com.min204.coseproject.content.dto.ContentResponseDto;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.content.mapper.ContentMapper;
-import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.content.service.ContentService;
-import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.course.service.CourseService;
 import com.min204.coseproject.response.MultiResponseDto;
 import com.min204.coseproject.response.SingleResponseDto;
-import javax.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Validated
@@ -26,31 +24,35 @@ import java.util.List;
 public class ContentController {
     private final ContentService contentService;
     private final ContentMapper contentMapper;
-    private final ContentRepository contentRepository;
     private final CourseService courseService;
-    private final CourseRepository courseRepository;
 
-    public ContentController(ContentService contentService, ContentMapper contentMapper, ContentRepository contentRepository, CourseService courseService, CourseRepository courseRepository) {
+    public ContentController(ContentService contentService, ContentMapper contentMapper, CourseService courseService) {
         this.contentService = contentService;
         this.contentMapper = contentMapper;
-        this.contentRepository = contentRepository;
         this.courseService = courseService;
-        this.courseRepository = courseRepository;
     }
-
 
     /*
      * 게시글 생성
      * */
     @PostMapping
     public ResponseEntity postContent(@Valid @RequestBody ContentPostDto requestBody) {
+        Content content = contentMapper.contentPostDtoToContent(requestBody);
+        content = contentService.createContent(content);
 
-        Content content = contentService.createContent(contentMapper.contentPostDtoToContent(requestBody));
         ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
 
-        return new ResponseEntity<>(
-                new SingleResponseDto<>(contentResponse), HttpStatus.OK
-        );
+        return new ResponseEntity<>(new SingleResponseDto<>(contentResponse), HttpStatus.OK);
+    }
+
+    /*
+     * 게시글과 코스 연결
+     * */
+    @PostMapping("/{contentId}/course/{courseId}")
+    public ResponseEntity linkCourse(@PathVariable("contentId") Long contentId,
+                                     @PathVariable("courseId") Long courseId) {
+        contentService.linkCourse(contentId, courseId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /*
@@ -74,16 +76,9 @@ public class ContentController {
                                       @RequestParam("size") int size) {
         Page<Content> pageContents = contentService.findContents(page - 1, size);
         List<Content> contents = pageContents.getContent();
-        contents.stream().forEach(
-                content -> content.setCourses(courseService.findCoursesByContentId(content.getContentId()))
-        );
+        contents.forEach(content -> content.setCourses(courseService.findCoursesByContentId(content.getContentId())));
 
-        return new ResponseEntity<>(
-                new MultiResponseDto<>(
-                        contentMapper.contentsToContentResponse(contents),
-                        pageContents),
-                HttpStatus.OK
-        );
+        return new ResponseEntity<>(new MultiResponseDto<>(contentMapper.contentsToContentResponse(contents), pageContents), HttpStatus.OK);
     }
 
     /*
@@ -94,8 +89,7 @@ public class ContentController {
                                        @PathVariable("contentId") Long contentId) {
 
         requestBody.updateId(contentId);
-        Content content = contentService.updateContent(
-                contentMapper.contentPatchDtoToContent(requestBody));
+        Content content = contentService.updateContent(contentMapper.contentPatchDtoToContent(requestBody));
 
         ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
 
@@ -111,8 +105,4 @@ public class ContentController {
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
-
-
-
 }

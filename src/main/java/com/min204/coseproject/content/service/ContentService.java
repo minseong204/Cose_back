@@ -2,17 +2,17 @@ package com.min204.coseproject.content.service;
 
 import com.min204.coseproject.comment.repository.CommentRepository;
 import com.min204.coseproject.content.dto.ContentAllResponseDto;
+import com.min204.coseproject.content.dto.ContentPatchDto;
+import com.min204.coseproject.content.dto.ContentPostDto;
+import com.min204.coseproject.content.dto.ContentResponseDto;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.content.mapper.ContentMapper;
 import com.min204.coseproject.content.repository.ContentRepository;
+import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.course.repository.CourseRepository;
-import com.min204.coseproject.course.service.CourseService;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.response.SingleResponseDto;
-import com.min204.coseproject.user.entity.User;
-import com.min204.coseproject.user.repository.UserRepository;
-import com.min204.coseproject.user.service.UserServiceImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -24,39 +24,40 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class ContentService {
-    private final UserRepository userRepository;
     private final ContentRepository contentRepository;
-    private final UserServiceImpl userServiceImpl;
-    private final ContentMapper contentMapper;
-    private final CommentRepository commentRepository;
-    private final CourseService courseService;
     private final CourseRepository courseRepository;
+    private final CommentRepository commentRepository;
+    private final ContentMapper contentMapper;
 
-    public ContentService(UserRepository userRepository, ContentRepository contentRepository, UserServiceImpl userServiceImpl, ContentMapper contentMapper, CommentRepository commentRepository, CourseService courseService, CourseRepository courseRepository) {
-        this.userRepository = userRepository;
+    public ContentService(ContentRepository contentRepository, CourseRepository courseRepository, CommentRepository commentRepository, ContentMapper contentMapper) {
         this.contentRepository = contentRepository;
-        this.userServiceImpl = userServiceImpl;
-        this.contentMapper = contentMapper;
-        this.commentRepository = commentRepository;
-        this.courseService = courseService;
         this.courseRepository = courseRepository;
+        this.commentRepository = commentRepository;
+        this.contentMapper = contentMapper;
     }
 
     public Content createContent(Content content) {
-        content.setUser(userServiceImpl.getLoginMember());
-
         return contentRepository.save(content);
+    }
+
+    public void linkCourse(Long contentId, Long courseId) {
+        Content content = findVerifiedContent(contentId);
+        Course course = findVerifiedCourse(courseId);
+        content.addCourse(course);
+        contentRepository.save(content);
     }
 
     public Content updateContent(Content content) {
         Content findContent = findVerifiedContent(content.getContentId());
 
-        Optional.ofNullable(content.getTitle())
-                .isPresent();
-
-        courseService.deleteCourse(findContent);
-        findContent.setCourses(courseService.createCourses(content.getCourses()));
+        Optional.ofNullable(content.getTitle()).ifPresent(findContent::setTitle);
+        Optional.ofNullable(content.getCourses()).ifPresent(courses -> {
+            findContent.getCourses().clear();
+            findContent.getCourses().addAll(courses);
+            courses.forEach(course -> course.setContent(findContent));
+        });
 
         return contentRepository.save(findContent);
     }
@@ -66,30 +67,12 @@ public class ContentService {
     }
 
     public Page<Content> findContents(int page, int size) {
-        return contentRepository.findAll(PageRequest.of(page, size,
-                Sort.by("contentId").descending()));
+        return contentRepository.findAll(PageRequest.of(page, size, Sort.by("contentId").descending()));
     }
 
     public void deleteContent(Long contentId) {
         Content findContent = findVerifiedContent(contentId);
         contentRepository.delete(findContent);
-    }
-
-    public User findVerifiedUser(String email) {
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        User findUser =
-                optionalUser.orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
-        return findUser;
-    }
-
-    public Content findVerifiedContent(Long contentId) {
-        Optional<Content> optionalContent = contentRepository.findById(contentId);
-        Content findContent =
-                optionalContent.orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.CONTENT_NOT_FOUND));
-
-        return findContent;
     }
 
     public Content updateViewCount(Content content) {
@@ -99,10 +82,16 @@ public class ContentService {
     @Transactional(readOnly = true)
     public ResponseEntity detail(Content content) {
         ContentAllResponseDto response = contentMapper.contentToContentAllResponse(content, commentRepository, courseRepository);
-
-        return new ResponseEntity<>(
-                new SingleResponseDto<>(response), HttpStatus.OK
-        );
+        return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
 
+    private Content findVerifiedContent(Long contentId) {
+        Optional<Content> optionalContent = contentRepository.findById(contentId);
+        return optionalContent.orElseThrow(() -> new BusinessLogicException(ExceptionCode.CONTENT_NOT_FOUND));
+    }
+
+    private Course findVerifiedCourse(Long courseId) {
+        Optional<Course> optionalCourse = courseRepository.findById(courseId);
+        return optionalCourse.orElseThrow(() -> new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
+    }
 }

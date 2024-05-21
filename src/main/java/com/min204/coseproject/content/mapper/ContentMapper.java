@@ -8,45 +8,42 @@ import com.min204.coseproject.content.dto.ContentPatchDto;
 import com.min204.coseproject.content.dto.ContentPostDto;
 import com.min204.coseproject.content.dto.ContentResponseDto;
 import com.min204.coseproject.content.entity.Content;
-import com.min204.coseproject.course.dto.CoursePostDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
 import com.min204.coseproject.course.entity.Course;
+import com.min204.coseproject.course.mapper.CourseMapper;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.user.entity.User;
-import com.min204.coseproject.user.entity.UserPhoto;
 import org.mapstruct.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
-public interface ContentMapper {
+public abstract class ContentMapper {
 
-    default Content contentPostDtoToContent(ContentPostDto requestBody) {
+    @Autowired
+    private CourseMapper courseMapper;
+
+    public Content contentPostDtoToContent(ContentPostDto requestBody) {
         Content content = new Content();
-
-        List<Course> courses = coursesDtosToCourses(requestBody.getCourses(), content);
-        content.setCourses(courses);
         content.setTitle(requestBody.getTitle());
-
         return content;
     }
 
-    default Content contentPatchDtoToContent(ContentPatchDto requestBody) {
+    public Content contentPatchDtoToContent(ContentPatchDto requestBody) {
         Content content = new Content();
-
         content.setContentId(requestBody.getContentId());
-        List<Course> courses = coursesDtosToCourses(requestBody.getCourses(), content);
-
         content.setTitle(requestBody.getTitle());
-        content.setCourses(courses);
-
         return content;
     }
 
-    default ContentResponseDto contentToContentResponse(Content content) {
+    public ContentResponseDto contentToContentResponse(Content content) {
         User user = content.getUser();
+        List<CourseResponseDto> courses = content.getCourses().stream()
+                .map(courseMapper::courseToCourseResponseDto)
+                .collect(Collectors.toList());
 
         return ContentResponseDto.builder()
                 .contentId(content.getContentId())
@@ -56,45 +53,21 @@ public interface ContentMapper {
                 .viewCount(content.getViewCount())
                 .createdAt(content.getCreatedAt())
                 .modifiedAt(content.getModifiedAt())
-                .courses(coursesToCourseResponseDtos(content.getCourses()))
+                .courses(courses)
                 .build();
     }
 
-    default List<Course> coursesDtosToCourses(List<CoursePostDto> coursePostDtos, Content content) {
-        return coursePostDtos.stream().map(coursePostDto -> {
-            Course course = new Course();
-            course.addContent(content);
-            course.setPlace(coursePostDto.getPlace());
-            course.setBody(coursePostDto.getBody());
-            course.setX(coursePostDto.getX());
-            course.setY(coursePostDto.getY());
-            course.setAddress(coursePostDto.getAddress());
-
-            return course;
-        }).collect(Collectors.toList());
-    }
-
-    default List<CourseResponseDto> coursesToCourseResponseDtos(List<Course> courses) {
-        return courses.stream()
-                .map(course -> CourseResponseDto.builder()
-                        .contentId(course.getContent().getContentId())
-                        .place(course.getPlace())
-                        .body(course.getBody())
-                        .x(course.getX())
-                        .y(course.getY())
-                        .courseId(course.getCourseId())
-                        .address(course.getAddress())
-                        .build())
+    public List<ContentResponseDto> contentsToContentResponse(List<Content> contents) {
+        return contents.stream()
+                .map(this::contentToContentResponse)
                 .collect(Collectors.toList());
     }
 
-    List<ContentResponseDto> contentsToContentResponse(List<Content> contents);
-
-    default ContentAllResponseDto contentToContentAllResponse(Content content, CommentRepository commentRepository, CourseRepository courseRepository) {
+    public ContentAllResponseDto contentToContentAllResponse(Content content, CommentRepository commentRepository, CourseRepository courseRepository) {
         User user = content.getUser();
         List<Comment> comments = commentRepository.findAllByContentId(content.getContentId());
         Collections.reverse(comments);
-        List<Course> courses = courseRepository.findAllByContentId(content.getContentId());
+        List<Course> courses = courseRepository.findAllByContent_ContentId(content.getContentId());
 
         return ContentAllResponseDto.builder()
                 .contentId(content.getContentId())
@@ -105,12 +78,12 @@ public interface ContentMapper {
                 .comments(commentsToCommentResponseDtos(comments))
                 .createdAt(content.getCreatedAt())
                 .modifiedAt(content.getModifiedAt())
-                .courses(coursesToCourseResponseDtos(courseRepository.findAllByContentId(content.getContentId())))
+                .courses(courseMapper.coursesToCourseResponseDtos(courses))
                 .viewCount(content.getViewCount())
                 .build();
     }
 
-    default List<CommentResponseDto> commentsToCommentResponseDtos(List<Comment> comments) {
+    private List<CommentResponseDto> commentsToCommentResponseDtos(List<Comment> comments) {
         return comments.stream()
                 .map(comment -> CommentResponseDto.builder()
                         .commentId(comment.getCommentId())
