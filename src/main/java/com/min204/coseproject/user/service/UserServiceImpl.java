@@ -2,6 +2,7 @@ package com.min204.coseproject.user.service;
 
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
+import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.user.dao.UserDao;
 import com.min204.coseproject.user.dao.UserPhotoDao;
 import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
@@ -10,16 +11,19 @@ import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
 import com.min204.coseproject.user.handler.UserFileHandler;
 import com.min204.coseproject.user.repository.UserRepository;
+import com.min204.coseproject.auth.service.AuthEmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -30,11 +34,13 @@ public class UserServiceImpl implements UserService {
     private final UserFileHandler userFileHandler;
     private final UserPhotoDao userPhotoDao;
     private final UserRepository userRepository;
+    private final AuthEmailService authEmailService;
+    private final RedisUtil redisUtil;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public User find(String email) {
-        User user = userDao.findByEmail(email);
-        return user;
+        return userDao.findByEmail(email);
     }
 
     @Override
@@ -78,15 +84,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserPhoto> findUserPhoto(Long userId) {
         User user = userDao.find(userId);
-        List<UserPhoto> userPhotos = userPhotoDao.findUserPhotosByUser(user);
-        return userPhotos;
+        return userPhotoDao.findUserPhotosByUser(user);
     }
 
     @Override
     public List<UserPhoto> findUserPhoto(String email) {
         User user = userDao.findByEmail(email);
-        List<UserPhoto> userPhotos = userPhotoDao.findUserPhotosByUser(user);
-        return userPhotos;
+        return userPhotoDao.findUserPhotosByUser(user);
     }
 
     @Override
@@ -103,8 +107,27 @@ public class UserServiceImpl implements UserService {
         }
 
         Optional<User> optionalUser = userRepository.findByEmail(authentication.getName());
-        User user = optionalUser.orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+        return optionalUser.orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+    }
 
-        return user;
+    @Override
+    public void sendPasswordResetEmail(String email) throws Exception {
+        User user = userDao.findByEmail(email);
+        String token = UUID.randomUUID().toString();
+        redisUtil.setDataExpire(email, token, 60 * 30L);  // 30분 동안 유효
+        authEmailService.sendPasswordResetEmail(email, token);
+    }
+
+    @Override
+    public boolean resetPassword(String email, String token, String newPassword) {
+        String storedToken = redisUtil.getData(email);
+        if (storedToken != null && storedToken.equals(token)) {
+            User user = userDao.findByEmail(email);
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userDao.save(user);
+            redisUtil.deleteData(email);
+            return true;
+        }
+        return false;
     }
 }

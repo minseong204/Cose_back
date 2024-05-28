@@ -53,6 +53,9 @@ public class User implements UserDetails {
     @Column(name = "refresh_token")
     private String refreshToken;
 
+    @Column(name = "reset_token")
+    private String resetToken;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream()
@@ -62,6 +65,14 @@ public class User implements UserDetails {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Builder

@@ -1,0 +1,10 @@
+package com.min204.coseproject.user.dto.req;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class PasswordResetRequestDto {
+    private String email;
+}

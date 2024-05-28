@@ -4,6 +4,8 @@ import com.min204.coseproject.constant.SuccessCode;
 import com.min204.coseproject.response.CoseResponse;
 import com.min204.coseproject.response.ResBodyModel;
 import com.min204.coseproject.response.SingleResponseDto;
+import com.min204.coseproject.user.dto.req.PasswordResetDto;
+import com.min204.coseproject.user.dto.req.PasswordResetRequestDto;
 import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
 import com.min204.coseproject.user.dto.res.ResponseUserInfoDto;
@@ -126,5 +128,34 @@ public class UserController {
 
         List<UserPhoto> userPhotos = userService.saveUserPhoto(userPhotoRequestDto, files);
         return CoseResponse.toResponse(SuccessCode.SUCCESS, userPhotos);
+    }
+
+    /*
+     * 비밀번호 재설정 이메일 요청
+     * */
+    @PostMapping("/password-reset-request")
+    public ResponseEntity<ResBodyModel> requestPasswordReset(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        try {
+            userService.sendPasswordResetEmail(email);
+            return CoseResponse.toResponse(SuccessCode.SUCCESS);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /*
+     * 비밀번호 재설정
+     * */
+    @PostMapping("/reset-password")
+    public ResponseEntity<ResBodyModel> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String token = request.get("token");
+        String newPassword = request.get("newPassword");
+        if (userService.resetPassword(email, token, newPassword)) {
+            return CoseResponse.toResponse(SuccessCode.SUCCESS);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }

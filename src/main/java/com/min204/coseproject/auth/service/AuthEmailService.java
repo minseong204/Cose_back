@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -34,7 +35,6 @@ public class AuthEmailService {
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
-
     }
 
     private String setContext(String code) {
@@ -43,7 +43,6 @@ public class AuthEmailService {
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
 
         context.setVariable("code", code);
-
 
         templateResolver.setPrefix("templates/");
         templateResolver.setSuffix(".html");
@@ -55,9 +54,18 @@ public class AuthEmailService {
         return templateEngine.process("email", context);
     }
 
-    // 메일 반환
-    private MimeMessage createEmailForm(String email) throws MessagingException {
+    private String setResetContext(String token) {
+        String url = "http://localhost:8080/reset-password?token=" + token;
+        return "<html>" +
+                "<body>" +
+                "<p>비밀번호 재설정 요청을 받았습니다. 아래 링크를 클릭하여 비밀번호를 재설정하세요:</p>" +
+                "<a href=\"" + url + "\">비밀번호 재설정</a>" +
+                "</body>" +
+                "</html>";
+    }
 
+    // 메일 반환 (인증 코드)
+    private MimeMessage createEmailForm(String email) throws MessagingException {
         String authCode = createdCode();
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -66,20 +74,37 @@ public class AuthEmailService {
         message.setFrom(configEmail);
         message.setText(setContext(authCode), "utf-8", "html");
 
-        redisUtil.setDataExpire(email, authCode, 60 * 30L);
+        redisUtil.setDataExpire(email, authCode, 60 * 30L);  // 30분 동안 유효
 
         return message;
     }
 
+    // 메일 반환 (비밀번호 재설정)
+    private MimeMessage createPasswordResetEmail(String email, String token) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        message.addRecipients(MimeMessage.RecipientType.TO, email);
+        message.setSubject("비밀번호 재설정 요청");
+        message.setFrom(configEmail);
+        message.setText(setResetContext(token), "utf-8", "html");
 
-    // 메일 보내기
+        redisUtil.setDataExpire(email, token, 60 * 30L);  // 30분 동안 유효
+
+        return message;
+    }
+
+    // 메일 보내기 (인증 코드)
     public void sendEmail(String toEmail) throws MessagingException {
         if (redisUtil.existData(toEmail)) {
             redisUtil.deleteData(toEmail);
         }
 
         MimeMessage emailForm = createEmailForm(toEmail);
+        mailSender.send(emailForm);
+    }
 
+    // 메일 보내기 (비밀번호 재설정)
+    public void sendPasswordResetEmail(String toEmail, String token) throws MessagingException {
+        MimeMessage emailForm = createPasswordResetEmail(toEmail, token);
         mailSender.send(emailForm);
     }
 

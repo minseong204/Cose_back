@@ -30,7 +30,6 @@ public class SecurityConfig {
                 .antMatchers("/auth/**").permitAll()
                 .antMatchers("/auth/email/**").permitAll()
                 .antMatchers("/users/**").permitAll()
-                .antMatchers("/users/login").permitAll()
                 .antMatchers("/contents/**").permitAll()
                 .antMatchers("/comments/**").permitAll()
                 .antMatchers("/comments/**").permitAll()
@@ -40,10 +39,11 @@ public class SecurityConfig {
                 .antMatchers("/api/auth/kakao/**").permitAll()
                 .antMatchers("/oauth/callback/kakao").permitAll()
                 .antMatchers("/v1/auth/kakao").permitAll()
-                .antMatchers(HttpMethod.POST, "/courses/**").permitAll()  // /courses 경로에 대한 POST 요청을 허용합니다.
+                .antMatchers("/auth/login").permitAll()
+                .antMatchers(HttpMethod.POST, "/courses/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);  // JWT 인증 필터 추가
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 

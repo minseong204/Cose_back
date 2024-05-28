@@ -4,7 +4,6 @@ import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
-import com.min204.coseproject.user.repository.UserPhotoRepository;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -13,6 +12,7 @@ public interface UserService {
     User find(String email);
 
     User find(Long userId);
+
     List<User> findAll();
 
     User update(UserRequestDto userRequestDto);
@@ -31,4 +31,7 @@ public interface UserService {
 
     User getLoginMember();
 
+    void sendPasswordResetEmail(String email) throws Exception;
+
+    boolean resetPassword(String email, String token, String newPassword);
 }
