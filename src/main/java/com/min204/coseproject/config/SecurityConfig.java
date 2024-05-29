@@ -41,6 +41,9 @@ public class SecurityConfig {
                 .antMatchers("/v1/auth/kakao").permitAll()
                 .antMatchers("/auth/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/courses/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/follow/**").hasRole("USER")
+                .antMatchers(HttpMethod.POST, "/follow/**").hasRole("USER")
+                .antMatchers(HttpMethod.DELETE, "/follow/**").hasRole("USER")
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
