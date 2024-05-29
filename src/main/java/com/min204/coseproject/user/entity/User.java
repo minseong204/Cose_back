@@ -1,5 +1,6 @@
 package com.min204.coseproject.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.min204.coseproject.comment.entity.Comment;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.heart.entity.Heart;
@@ -46,6 +47,7 @@ public class User implements UserDetails {
     @Column(name = "sign_up_date")
     private Date signUpDate;
 
+    @JsonIgnore
     @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
     private List<String> roles = new ArrayList<>();
