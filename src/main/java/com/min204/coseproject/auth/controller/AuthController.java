@@ -11,6 +11,7 @@ import com.min204.coseproject.response.CoseResponse;
 import com.min204.coseproject.response.ResBodyModel;
 import com.min204.coseproject.user.dto.req.ReissueTokensRequestDto;
 import com.min204.coseproject.user.entity.User;
+import com.min204.coseproject.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/sign-up")
     public ResponseEntity<ResBodyModel> signUp(@RequestBody AuthSigUpRequestDto authSigUpRequestDto) {
@@ -56,4 +58,13 @@ public class AuthController {
         return "확인 불가";
     }
 
+    /*
+     * 중복 이메일 검사
+     * */
+    @PostMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
+
+        boolean exists = userService.isEmailExists(email);
+        return ResponseEntity.ok(exists);
+    }
 }

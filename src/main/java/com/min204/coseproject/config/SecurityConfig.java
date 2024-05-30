@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .antMatchers("/oauth/callback/kakao").permitAll()
                 .antMatchers("/v1/auth/kakao").permitAll()
                 .antMatchers("/auth/login").permitAll()
+                .antMatchers("/auth/check-email").permitAll()
                 .antMatchers(HttpMethod.POST, "/courses/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/follow/**").hasRole("USER")
                 .antMatchers(HttpMethod.POST, "/follow/**").hasRole("USER")
