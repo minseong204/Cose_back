@@ -31,4 +31,17 @@ public class KakaoClient {
 
         return response.getBody();
     }
+
+    public String searchKeyword(String query) {
+        String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query=" + query;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + apiKey);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, String.class);
+
+        return response.getBody();
+    }
 }

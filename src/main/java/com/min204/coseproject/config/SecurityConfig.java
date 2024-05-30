@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, "/follow/**").hasRole("USER")
                 .antMatchers(HttpMethod.DELETE, "/follow/**").hasRole("USER")
                 .antMatchers(HttpMethod.GET, "/location/search").permitAll()  // 추가된 부분
+                .antMatchers(HttpMethod.GET, "/location/keyword").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);

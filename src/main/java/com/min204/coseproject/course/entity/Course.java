@@ -27,7 +27,7 @@ public class Course extends Auditable {
     @JoinColumn(name = "content_id")
     private Content content;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Place> places = new ArrayList<>();
 
     @Column(nullable = false)
