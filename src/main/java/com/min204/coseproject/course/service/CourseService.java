@@ -88,7 +88,7 @@ public class CourseService {
         return courseRepository.findAllByContent_ContentId(contentId);
     }
 
-    private Course findVerifiedCourse(Long courseId) {
+    public Course findVerifiedCourse(Long courseId) {
         return courseRepository.findById(courseId).orElseThrow(() ->
                 new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
     }

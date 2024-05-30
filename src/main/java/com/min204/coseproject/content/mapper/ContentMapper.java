@@ -47,7 +47,7 @@ public abstract class ContentMapper {
 
         return ContentResponseDto.builder()
                 .contentId(content.getContentId())
-                .email(user.getEmail())
+                .email(user != null ? user.getEmail() : null)
                 .title(content.getTitle())
                 .heartCount(content.getHeartCount())
                 .viewCount(content.getViewCount())
@@ -71,8 +71,8 @@ public abstract class ContentMapper {
 
         return ContentAllResponseDto.builder()
                 .contentId(content.getContentId())
-                .email(user.getEmail())
-                .nickName(user.getNickname())
+                .email(user != null ? user.getEmail() : null)
+                .nickName(user != null ? user.getNickname() : null)
                 .title(content.getTitle())
                 .heartCount(content.getHeartCount())
                 .comments(commentsToCommentResponseDtos(comments))

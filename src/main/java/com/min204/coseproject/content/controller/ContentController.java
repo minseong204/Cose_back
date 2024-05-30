@@ -36,10 +36,8 @@ public class ContentController {
      * 게시글 생성
      * */
     @PostMapping
-    public ResponseEntity postContent(@Valid @RequestBody ContentPostDto requestBody) {
-        Content content = contentMapper.contentPostDtoToContent(requestBody);
-        content = contentService.createContent(content);
-
+    public ResponseEntity<SingleResponseDto<ContentResponseDto>> postContent(@Valid @RequestBody ContentPostDto requestBody) {
+        Content content = contentService.createContent(requestBody);
         ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
 
         return new ResponseEntity<>(new SingleResponseDto<>(contentResponse), HttpStatus.OK);
@@ -49,8 +47,8 @@ public class ContentController {
      * 게시글과 코스 연결
      * */
     @PostMapping("/{contentId}/course/{courseId}")
-    public ResponseEntity linkCourse(@PathVariable("contentId") Long contentId,
-                                     @PathVariable("courseId") Long courseId) {
+    public ResponseEntity<Void> linkCourse(@PathVariable("contentId") Long contentId,
+                                           @PathVariable("courseId") Long courseId) {
         contentService.linkCourse(contentId, courseId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -59,50 +57,50 @@ public class ContentController {
      * 게시글 단일 조회
      * */
     @GetMapping("/{contentId}")
-    public ResponseEntity getContent(@PathVariable("contentId") Long contentId) {
+    public ResponseEntity<SingleResponseDto<ContentResponseDto>> getContent(@PathVariable("contentId") Long contentId) {
         Content content = contentService.findContent(contentId);
         int viewCount = content.getViewCount();
         content.setViewCount(++viewCount);
         contentService.updateViewCount(content);
 
-        return contentService.detail(content);
+        ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
+        return new ResponseEntity<>(new SingleResponseDto<>(contentResponse), HttpStatus.OK);
     }
 
     /*
      * 게시글 전체 조회
      * */
     @GetMapping
-    public ResponseEntity getContents(@RequestParam("page") int page,
-                                      @RequestParam("size") int size) {
+    public ResponseEntity<MultiResponseDto<ContentResponseDto>> getContents(@RequestParam("page") int page,
+                                                                            @RequestParam("size") int size) {
         Page<Content> pageContents = contentService.findContents(page - 1, size);
         List<Content> contents = pageContents.getContent();
-        contents.forEach(content -> content.setCourses(courseService.findCoursesByContentId(content.getContentId())));
 
-        return new ResponseEntity<>(new MultiResponseDto<>(contentMapper.contentsToContentResponse(contents), pageContents), HttpStatus.OK);
+        contents.forEach(content -> content.setCourses(courseService.findCoursesByContentId(content.getContentId())));
+        List<ContentResponseDto> contentResponses = contentMapper.contentsToContentResponse(contents);
+
+        return new ResponseEntity<>(new MultiResponseDto<>(contentResponses, pageContents), HttpStatus.OK);
     }
 
     /*
      * 게시글 수정
      * */
     @PatchMapping("/{contentId}")
-    public ResponseEntity patchContent(@RequestBody ContentPatchDto requestBody,
-                                       @PathVariable("contentId") Long contentId) {
-
+    public ResponseEntity<SingleResponseDto<ContentResponseDto>> patchContent(@RequestBody ContentPatchDto requestBody,
+                                                                              @PathVariable("contentId") Long contentId) {
         requestBody.updateId(contentId);
         Content content = contentService.updateContent(contentMapper.contentPatchDtoToContent(requestBody));
-
         ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
 
-        return new ResponseEntity<>(contentResponse, HttpStatus.OK);
+        return new ResponseEntity<>(new SingleResponseDto<>(contentResponse), HttpStatus.OK);
     }
 
     /*
      * 게시글 삭제
      * */
     @DeleteMapping("/{contentId}")
-    public ResponseEntity deleteContent(@PathVariable("contentId") Long contentId) {
+    public ResponseEntity<Void> deleteContent(@PathVariable("contentId") Long contentId) {
         contentService.deleteContent(contentId);
-
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
