@@ -33,7 +33,7 @@ public class User implements UserDetails {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "email")
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -77,27 +77,17 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    @Builder
-    public User(String email, String password, String nickname) {
-        this.email = email;
-        this.password = password;
-        this.nickname = nickname;
-    }
-
     public void changeInfo(UserRequestDto userRequestDto) {
         this.email = userRequestDto.getEmail();
         this.nickname = userRequestDto.getNickname();
     }
 
-    //유저가 삭제되면, 작성 글과 좋아요도 삭제됨
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Content> contents = new ArrayList<>();
 
-    //유저가 삭제되면, 좋아요가 삭제됨
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Heart> hearts = new ArrayList<>();
 
-    //유저가 삭제되면, 댓글도 삭제됨
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 

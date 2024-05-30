@@ -2,6 +2,7 @@ package com.min204.coseproject.user.service;
 
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
+import com.min204.coseproject.oauth.repository.OAuthUserRepository;
 import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.user.dao.UserDao;
 import com.min204.coseproject.user.dao.UserPhotoDao;
@@ -37,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final AuthEmailService authEmailService;
     private final RedisUtil redisUtil;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final OAuthUserRepository oAuthUserRepository;
 
     @Override
     public User find(String email) {
@@ -129,5 +131,15 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean checkEmailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean isEmailExists(String email) {
+        return userRepository.existsByEmail(email) || oAuthUserRepository.existsByEmail(email);
     }
 }
