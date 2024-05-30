@@ -16,4 +16,10 @@ public class LocationController {
     public String searchLocation(@RequestParam String address) {
         return kakaoClient.searchAddress(address);
     }
+
+    @GetMapping("/location/keyword")
+    public String searchKeyword(@RequestParam String address) {
+        return kakaoClient.searchKeyword(address);
+    }
+
 }
