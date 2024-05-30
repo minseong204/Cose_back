@@ -34,7 +34,7 @@ public class Content extends Auditable {
     @Column(nullable = false)
     private int heartCount = 0;
 
-    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Course> courses = new ArrayList<>();
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.REMOVE)

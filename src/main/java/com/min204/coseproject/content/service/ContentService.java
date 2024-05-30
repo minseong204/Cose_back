@@ -2,9 +2,7 @@ package com.min204.coseproject.content.service;
 
 import com.min204.coseproject.comment.repository.CommentRepository;
 import com.min204.coseproject.content.dto.ContentAllResponseDto;
-import com.min204.coseproject.content.dto.ContentPatchDto;
 import com.min204.coseproject.content.dto.ContentPostDto;
-import com.min204.coseproject.content.dto.ContentResponseDto;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.content.mapper.ContentMapper;
 import com.min204.coseproject.content.repository.ContentRepository;
@@ -38,7 +36,12 @@ public class ContentService {
         this.contentMapper = contentMapper;
     }
 
-    public Content createContent(Content content) {
+    public Content createContent(ContentPostDto requestBody) {
+        Content content = contentMapper.contentPostDtoToContent(requestBody);
+        if (requestBody.getCourseId() != null) {
+            Course course = findVerifiedCourse(requestBody.getCourseId());
+            content.addCourse(course);
+        }
         return contentRepository.save(content);
     }
 
@@ -80,17 +83,17 @@ public class ContentService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity detail(Content content) {
+    public ResponseEntity<SingleResponseDto<ContentAllResponseDto>> detail(Content content) {
         ContentAllResponseDto response = contentMapper.contentToContentAllResponse(content, commentRepository, courseRepository);
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
 
     private Content findVerifiedContent(Long contentId) {
-        Optional<Content> optionalContent = contentRepository.findById(contentId);
+        Optional<Content> optionalContent = contentRepository.findByIdWithCourses(contentId);
         return optionalContent.orElseThrow(() -> new BusinessLogicException(ExceptionCode.CONTENT_NOT_FOUND));
     }
 
-    private Course findVerifiedCourse(Long courseId) {
+    public Course findVerifiedCourse(Long courseId) {
         Optional<Course> optionalCourse = courseRepository.findById(courseId);
         return optionalCourse.orElseThrow(() -> new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
     }
