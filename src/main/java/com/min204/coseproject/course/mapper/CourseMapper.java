@@ -13,17 +13,34 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface CourseMapper {
 
+//    default Course coursePostDtoToCourse(CoursePostDto requestBody) {
+//        Course course = new Course();
+//        course.setDescription(requestBody.getDescription());
+//
+//        List<Place> places = requestBody.getPlaces().stream()
+//                .map(this::placeDtoToPlace)
+//                .collect(Collectors.toList());
+//        places.forEach(course::addPlace);
+//
+//        return course;
+//    }
+
     default Course coursePostDtoToCourse(CoursePostDto requestBody) {
         Course course = new Course();
         course.setDescription(requestBody.getDescription());
 
         List<Place> places = requestBody.getPlaces().stream()
-                .map(this::placeDtoToPlace)
+                .map(placeDto -> {
+                    Place place = placeDtoToPlace(placeDto);
+                    place.setCourse(course); // 각 Place에 Course 설정
+                    return place;
+                })
                 .collect(Collectors.toList());
-        places.forEach(course::addPlace);
+        course.setPlaces(places);
 
         return course;
     }
+
 
     default CourseResponseDto courseToCourseResponseDto(Course course) {
         List<PlaceDto> placeDtos = course.getPlaces().stream()

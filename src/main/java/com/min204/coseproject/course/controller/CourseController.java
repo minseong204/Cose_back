@@ -14,8 +14,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import java.util.List;
 
 @Validated
 @RestController
@@ -43,7 +41,7 @@ public class CourseController {
     @PatchMapping("/{courseId}")
     public ResponseEntity patchCourse(@Valid @RequestBody CoursePostDto requestBody,
                                       @PathVariable("courseId") Long courseId) {
-        Course course = courseService.updateCourse(courseId, courseMapper.coursePostDtoToCourse(requestBody));
+        Course course = courseService.updateCourse(courseId, requestBody);
         CourseResponseDto courseResponseDto = courseMapper.courseToCourseResponseDto(course);
 
         return new ResponseEntity<>(new SingleResponseDto<>(courseResponseDto), HttpStatus.OK);
@@ -59,14 +57,12 @@ public class CourseController {
     public ResponseEntity getCourses(@RequestParam("page") int page,
                                      @RequestParam("size") int size) {
         Page<Course> pageCourses = courseService.findCourses(page - 1, size);
-        List<Course> courses = pageCourses.getContent();
-
-        return new ResponseEntity<>(new MultiResponseDto<>(courseMapper.coursesToCourseResponseDtos(courses), pageCourses), HttpStatus.OK);
+        return new ResponseEntity<>(new MultiResponseDto<>(courseMapper.coursesToCourseResponseDtos(pageCourses.getContent()), pageCourses), HttpStatus.OK);
     }
 
     @DeleteMapping("/{courseId}")
     public ResponseEntity deleteCourse(@PathVariable("courseId") Long courseId) {
         courseService.deleteCourse(courseId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
