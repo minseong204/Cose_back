@@ -1,6 +1,7 @@
 package com.min204.coseproject.course.service;
 
 import com.min204.coseproject.course.dto.CoursePostDto;
+import com.min204.coseproject.course.dto.CourseResponseDto;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.course.mapper.CourseMapper;
 import com.min204.coseproject.course.repository.CourseRepository;
@@ -44,8 +45,10 @@ public class CourseService {
         return courseRepository.save(findCourse);
     }
 
-    public Course findCourse(Long courseId) {
-        return findVerifiedCourse(courseId);
+    public CourseResponseDto findCourse(Long courseId) {
+        Course course = courseRepository.findCourseWithPlaces(courseId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
+        return courseMapper.courseToCourseResponseDto(course);
     }
 
     public Page<Course> findCourses(int page, int size) {

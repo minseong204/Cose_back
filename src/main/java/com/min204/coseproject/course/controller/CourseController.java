@@ -51,9 +51,7 @@ public class CourseController {
 
     @GetMapping("/{courseId}")
     public ResponseEntity getCourse(@PathVariable("courseId") Long courseId) {
-        Course course = courseService.findCourse(courseId);
-        CourseResponseDto courseResponseDto = courseMapper.courseToCourseResponseDto(course);
-
+        CourseResponseDto courseResponseDto = courseService.findCourse(courseId);
         return new ResponseEntity<>(new SingleResponseDto<>(courseResponseDto), HttpStatus.OK);
     }
 
