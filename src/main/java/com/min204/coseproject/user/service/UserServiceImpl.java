@@ -1,5 +1,6 @@
 package com.min204.coseproject.user.service;
 
+import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -56,8 +58,11 @@ public class UserServiceImpl implements UserService {
         int postCount = contentRepository.countByUser(user);
         int followerCount = followRepository.countByFollowee(user);
         int followingCount = followRepository.countByFollower(user);
+        List<Long> contentIds = contentRepository.findAllByUser(user).stream()
+                .map(Content::getContentId)
+                .collect(Collectors.toList());
 
-        return new UserProfileResponseDto(user.getNickname(), postCount, followerCount, followingCount);
+        return new UserProfileResponseDto(user.getNickname(), postCount, contentIds, followerCount, followingCount);
     }
 
     @Override
