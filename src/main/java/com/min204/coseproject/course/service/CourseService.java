@@ -8,6 +8,9 @@ import com.min204.coseproject.course.mapper.CourseMapper;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
+import com.min204.coseproject.user.entity.User;
+import com.min204.coseproject.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,19 +25,19 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
+    private final UserService userService;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public CourseService(CourseRepository courseRepository, CourseMapper courseMapper) {
-        this.courseRepository = courseRepository;
-        this.courseMapper = courseMapper;
-    }
 
     public Course createCourse(Course course) {
+        User currentUser = userService.getLoginMember();
+        course.setUser(currentUser);
         return courseRepository.save(course);
     }
 

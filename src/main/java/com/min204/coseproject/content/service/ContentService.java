@@ -11,6 +11,9 @@ import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.response.SingleResponseDto;
+import com.min204.coseproject.user.entity.User;
+import com.min204.coseproject.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,21 +26,20 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ContentService {
     private final ContentRepository contentRepository;
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
     private final ContentMapper contentMapper;
-
-    public ContentService(ContentRepository contentRepository, CourseRepository courseRepository, CommentRepository commentRepository, ContentMapper contentMapper) {
-        this.contentRepository = contentRepository;
-        this.courseRepository = courseRepository;
-        this.commentRepository = commentRepository;
-        this.contentMapper = contentMapper;
-    }
+    private final UserService userService;
 
     public Content createContent(ContentPostDto requestBody) {
         Content content = contentMapper.contentPostDtoToContent(requestBody);
+
+        User currentUser = userService.getLoginMember();
+        content.setUser(currentUser);
+
         if (requestBody.getCourseId() != null) {
             Course course = findVerifiedCourse(requestBody.getCourseId());
             content.addCourse(course);

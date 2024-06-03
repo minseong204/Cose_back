@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.content.entity.Content;
 import javax.persistence.*;
+
+import com.min204.coseproject.user.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,6 +34,10 @@ public class Course extends Auditable {
 
     @Column(nullable = false)
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public void addPlace(Place place) {
         this.places.add(place);
