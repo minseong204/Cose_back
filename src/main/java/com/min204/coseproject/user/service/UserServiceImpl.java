@@ -1,13 +1,16 @@
 package com.min204.coseproject.user.service;
 
+import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
+import com.min204.coseproject.follow.repository.FollowRepository;
 import com.min204.coseproject.oauth.repository.OAuthUserRepository;
 import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.user.dao.UserDao;
 import com.min204.coseproject.user.dao.UserPhotoDao;
 import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
+import com.min204.coseproject.user.dto.res.UserProfileResponseDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
 import com.min204.coseproject.user.handler.UserFileHandler;
@@ -39,10 +42,22 @@ public class UserServiceImpl implements UserService {
     private final RedisUtil redisUtil;
     private final BCryptPasswordEncoder passwordEncoder;
     private final OAuthUserRepository oAuthUserRepository;
+    private final ContentRepository contentRepository;
+    private final FollowRepository followRepository;
 
     @Override
     public User find(String email) {
         return userDao.findByEmail(email);
+    }
+
+    @Override
+    public UserProfileResponseDto getUserProfile(String email) {
+        User user = find(email);
+        int postCount = contentRepository.countByUser(user);
+        int followerCount = followRepository.countByFollowee(user);
+        int followingCount = followRepository.countByFollower(user);
+
+        return new UserProfileResponseDto(user.getNickname(), postCount, followerCount, followingCount);
     }
 
     @Override

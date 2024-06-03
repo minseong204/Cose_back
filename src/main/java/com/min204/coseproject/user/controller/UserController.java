@@ -9,6 +9,7 @@ import com.min204.coseproject.user.dto.req.PasswordResetRequestDto;
 import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
 import com.min204.coseproject.user.dto.res.ResponseUserInfoDto;
+import com.min204.coseproject.user.dto.res.UserProfileResponseDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
 import com.min204.coseproject.user.mapper.UserMapper;
@@ -157,5 +158,14 @@ public class UserController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    /*
+     * 사용자 별 프로필 정보 반환
+     * */
+    @GetMapping("/user/profile")
+    public ResponseEntity<ResBodyModel> getUserProfile(@RequestParam String email) {
+        UserProfileResponseDto userProfile = userService.getUserProfile(email);
+        return CoseResponse.toResponse(SuccessCode.SUCCESS, userProfile);
     }
 }

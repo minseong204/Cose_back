@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .antMatchers("/auth/**").permitAll()
                 .antMatchers("/auth/email/**").permitAll()
                 .antMatchers("/users/**").permitAll()
+                .antMatchers("/users/user/profile").permitAll()
                 .antMatchers("/contents/**").permitAll()
                 .antMatchers("/comments/**").permitAll()
                 .antMatchers("/comments/**").permitAll()
