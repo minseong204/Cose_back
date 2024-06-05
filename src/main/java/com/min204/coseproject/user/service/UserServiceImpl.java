@@ -141,16 +141,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean resetPassword(String email, String token, String newPassword) {
-        String storedToken = redisUtil.getData(email);
-        if (storedToken != null && storedToken.equals(token)) {
-            User user = userDao.findByEmail(email);
-            user.setPassword(passwordEncoder.encode(newPassword));
-            userDao.save(user);
-            redisUtil.deleteData(email);
-            return true;
-        }
-        return false;
+    public boolean resetPassword(String email, String newPassword) {
+        User user = userDao.findByEmail(email);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userDao.save(user);
+        redisUtil.deleteData(email);
+        return true;
     }
 
     @Override
