@@ -15,7 +15,7 @@
 <br>
 
 ### 🧙 멤버 구성
-[조민성](https://github.com/miseong204)<br>
+[조민성](https://github.com/minseong204)<br>
 [이수하](https://github.com/zxcv74720)
 
 <br>
