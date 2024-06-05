@@ -36,7 +36,7 @@ public interface UserService {
 
     void sendPasswordResetEmail(String email) throws Exception;
 
-    boolean resetPassword(String email, String token, String newPassword);
+    boolean resetPassword(String email, String newPassword);
 
     boolean checkEmailExists(String email);
 

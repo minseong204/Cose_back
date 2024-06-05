@@ -151,9 +151,8 @@ public class UserController {
     @PostMapping("/reset-password")
     public ResponseEntity<ResBodyModel> resetPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        String token = request.get("token");
         String newPassword = request.get("newPassword");
-        if (userService.resetPassword(email, token, newPassword)) {
+        if (userService.resetPassword(email, newPassword)) {
             return CoseResponse.toResponse(SuccessCode.SUCCESS);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
