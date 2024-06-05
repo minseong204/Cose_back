@@ -37,6 +37,7 @@
 <br>
 
 ### 📌 아키텍처
+<img src="https://i.postimg.cc/25WgZ7jJ/image.png">
 
 <br>
 
