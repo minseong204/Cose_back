@@ -13,4 +13,6 @@ public interface AuthService {
     Optional<TokenInfo> login(String email, String password);
 
     TokenInfo reissueTokens(String refreshToken, ReissueTokensRequestDto reissueTokensRequestDto);
+
+    void existsByEmail(String email);
 }

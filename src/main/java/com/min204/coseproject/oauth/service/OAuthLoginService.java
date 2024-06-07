@@ -1,19 +1,21 @@
 package com.min204.coseproject.oauth.service;
 
-import com.min204.coseproject.exception.BusinessLogicException;
-import com.min204.coseproject.exception.ExceptionCode;
+import com.min204.coseproject.exception.EmailAlreadyExistsException;
 import com.min204.coseproject.oauth.dto.authInfoResponse.OAuthInfoResponse;
 import com.min204.coseproject.oauth.dto.oAuthLoginParams.OAuthLoginParams;
 import com.min204.coseproject.oauth.entity.OAuthUser;
 import com.min204.coseproject.oauth.jwt.AuthTokens;
 import com.min204.coseproject.oauth.jwt.AuthTokensGenerator;
 import com.min204.coseproject.oauth.repository.OAuthUserRepository;
+import com.min204.coseproject.user.entity.User;
+import com.min204.coseproject.user.repository.UserRepository;
 import com.min204.coseproject.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -24,6 +26,7 @@ public class OAuthLoginService {
     private final AuthTokensGenerator authTokensGenerator;
     private final RequestOAuthInfoService requestOAuthInfoService;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     public AuthTokens login(OAuthLoginParams params) {
         OAuthInfoResponse oAuthInfoResponse = requestOAuthInfoService.request(params);
@@ -32,8 +35,16 @@ public class OAuthLoginService {
         log.info("oAuthInfoResponse.oauth : {}",oAuthInfoResponse.getOAuthProvider());
 
         // 이메일 중복 체크
-        if (userService.checkEmailExists(oAuthInfoResponse.getEmail())) {
-            throw new BusinessLogicException(ExceptionCode.USER_EXISTS);
+        String email = oAuthInfoResponse.getEmail();
+        Optional<OAuthUser> existingOAuthUser = oAuthUserRepository.findByEmail(email);
+        Optional<User> existingLocalUser = userRepository.findByEmail(email);
+
+        if (existingOAuthUser.isPresent()) {
+            throw new EmailAlreadyExistsException(email, existingOAuthUser.get().getOAuthProvider().name());
+        }
+
+        if (existingLocalUser.isPresent()) {
+            throw new EmailAlreadyExistsException(email, "Local");
         }
 
         Long userId = findOrCreateUser(oAuthInfoResponse);
