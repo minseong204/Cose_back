@@ -3,13 +3,15 @@ package com.min204.coseproject.oauth.dto.oAuthLoginParams;
 import com.min204.coseproject.oauth.entity.OAuthProvider;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class KakaoLoginParams implements OAuthLoginParams {
-    private String authorizationCode;
+    private String accessToken;
 
     @Override
     public OAuthProvider oAuthProvider() {
@@ -18,8 +20,11 @@ public class KakaoLoginParams implements OAuthLoginParams {
 
     @Override
     public MultiValueMap<String, String> makeBody() {
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("code", authorizationCode);
-        return body;
+        return null;
+    }
+
+    @Override
+    public String getAccessToken() {
+        return accessToken;
     }
 }

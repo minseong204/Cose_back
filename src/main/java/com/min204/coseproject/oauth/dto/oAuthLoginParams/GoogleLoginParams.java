@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 @Getter
 @NoArgsConstructor
-public class GoogleLoginParams implements OAuthLoginParams {
+public abstract class GoogleLoginParams implements OAuthLoginParams {
     private String authorizationCode;
 
     @Override

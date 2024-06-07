@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class RequestOAuthInfoService {
+public class RequestOAuthGoogleInfoService {
     private final Map<OAuthProvider, OAuthApiClient> clients;
 
-    public RequestOAuthInfoService(List<OAuthApiClient> clients) {
+    public RequestOAuthGoogleInfoService(List<OAuthApiClient> clients) {
         this.clients = clients.stream().collect(
                 Collectors.toUnmodifiableMap(OAuthApiClient::oAuthProvider, Function.identity())
         );
@@ -25,6 +25,7 @@ public class RequestOAuthInfoService {
 
     public OAuthInfoResponse request(OAuthLoginParams params) {
         OAuthApiClient client = clients.get(params.oAuthProvider());
-        return client.requestOauthInfo(params.getAccessToken());
+        String accessToken = client.requestAccessToken(params);
+        return client.requestOauthInfo(accessToken);
     }
 }

@@ -4,33 +4,28 @@ import com.min204.coseproject.oauth.dto.authInfoResponse.NaverInfoResponse;
 import com.min204.coseproject.oauth.dto.authInfoResponse.OAuthInfoResponse;
 import com.min204.coseproject.oauth.dto.oAuthLoginParams.OAuthLoginParams;
 import com.min204.coseproject.oauth.entity.OAuthProvider;
-import com.min204.coseproject.oauth.tokens.NaverTokens;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Component
 @RequiredArgsConstructor
 public class NaverApiClient implements OAuthApiClient {
-    private static final String GRANT_TYPE = "authorization_code";
+//    private static final String GRANT_TYPE = "authorization_code";
 
-    @Value("${oauth.naver.url.auth}")
-    private String authUrl;
+//    @Value("${oauth.naver.url.auth}")
+//    private String authUrl;
 
     @Value("${oauth.naver.url.api}")
     private String apiUrl;
 
-    @Value("${oauth.naver.client-id}")
-    private String clientId;
+//    @Value("${oauth.naver.client-id}")
+//    private String clientId;
 
-    @Value("${oauth.naver.secret}")
-    private String clientSecret;
+//    @Value("${oauth.naver.secret}")
+//    private String clientSecret;
 
     private final RestTemplate restTemplate;
 
@@ -40,24 +35,14 @@ public class NaverApiClient implements OAuthApiClient {
     }
     @Override
     public String requestAccessToken(OAuthLoginParams params) {
-        String url = authUrl + "/oauth2.0/token";
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> body = params.makeBody();
-        body.add("grant_type", GRANT_TYPE);
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-
-        HttpEntity<?> request = new HttpEntity<>(body, httpHeaders);
-
-        NaverTokens response = restTemplate.postForObject(url, request, NaverTokens.class);
-
-        assert response != null;
-        return response.getAccessToken();
+        throw new UnsupportedOperationException("네이버는 이 메서드에서 인가코드를 통해 AccessToken 을 발급해주지 않습니다.");
     }
 
+
+    /*
+     * TODO : http 통신에서는 AccessToken 을 통신함에 있어 보안상 이슈 발생..
+     *  반드시, 멀티커넥터를 이용한 http, https 동시 적용 필수
+     * */
     @Override
     public OAuthInfoResponse requestOauthInfo(String accessToken) {
         String url = apiUrl + "/v1/nid/me";
@@ -66,10 +51,10 @@ public class NaverApiClient implements OAuthApiClient {
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         httpHeaders.set("Authorization", "Bearer " + accessToken);
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        HttpEntity<?> request = new HttpEntity<>(httpHeaders);
 
-        HttpEntity<?> request = new HttpEntity<>(body, httpHeaders);
+        ResponseEntity<NaverInfoResponse> response = restTemplate.exchange(url, HttpMethod.GET, request, NaverInfoResponse.class);
 
-        return restTemplate.postForObject(url, request, NaverInfoResponse.class);
+        return response.getBody();
     }
 }
