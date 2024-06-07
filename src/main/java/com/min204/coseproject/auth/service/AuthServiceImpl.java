@@ -3,9 +3,12 @@ package com.min204.coseproject.auth.service;
 import com.min204.coseproject.auth.dto.AuthSigUpRequestDto;
 import com.min204.coseproject.constant.UserRoles;
 import com.min204.coseproject.exception.BusinessLogicException;
+import com.min204.coseproject.exception.EmailAlreadyExistsException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.jwt.JwtTokenProvider;
 import com.min204.coseproject.jwt.TokenInfo;
+import com.min204.coseproject.oauth.entity.OAuthUser;
+import com.min204.coseproject.oauth.repository.OAuthUserRepository;
 import com.min204.coseproject.user.dao.UserDao;
 import com.min204.coseproject.user.dto.req.ReissueTokensRequestDto;
 import com.min204.coseproject.user.entity.User;
@@ -29,9 +32,11 @@ public class AuthServiceImpl implements AuthService {
     private final UserDao userDao;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OAuthUserRepository oAuthUserRepository;
 
     @Override
     public User save(AuthSigUpRequestDto authSigUpRequestDto) {
+        existsByEmail(authSigUpRequestDto.getEmail());
         String encode = encoder.encode(authSigUpRequestDto.getPassword());
 
         User user = User.builder()
@@ -40,7 +45,6 @@ public class AuthServiceImpl implements AuthService {
                 .nickname(authSigUpRequestDto.getNickname())
                 .roles(Collections.singletonList(UserRoles.USER.getRole()))
                 .build();
-        existsByEmail(user.getEmail());
 
         return userDao.save(user);
     }
@@ -49,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
     public Optional<TokenInfo> login(String email, String password) {
         User user = userDao.findByEmail(email);
 
-        if (encoder.matches(password, user.getPassword())==true) {
+        if (encoder.matches(password, user.getPassword())) {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, user.getPassword());
 
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
@@ -76,13 +80,18 @@ public class AuthServiceImpl implements AuthService {
         throw new BusinessLogicException(ExceptionCode.INVALID_ACCESS_TOKEN);
     }
 
-    /*
-     * 이매일 중복 검사
-     * */
+    @Override
     public void existsByEmail(String email) {
-        Boolean result = userDao.existsByEmail(email);
-        if (result) {
-            throw new BusinessLogicException(ExceptionCode.USER_EXISTS);
+        boolean existsInLocal = userDao.existsByEmail(email);
+        boolean existsInOAuth = oAuthUserRepository.existsByEmail(email);
+
+        if (existsInLocal) {
+            throw new EmailAlreadyExistsException(email, "Local");
+        }
+
+        if (existsInOAuth) {
+            Optional<OAuthUser> oauthUser = oAuthUserRepository.findByEmail(email);
+            throw new EmailAlreadyExistsException(email, oauthUser.get().getOAuthProvider().name());
         }
     }
 
