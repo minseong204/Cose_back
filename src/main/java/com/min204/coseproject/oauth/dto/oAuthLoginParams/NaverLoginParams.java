@@ -9,7 +9,7 @@ import org.springframework.util.MultiValueMap;
 @Getter
 @NoArgsConstructor
 public class NaverLoginParams implements OAuthLoginParams {
-    private String authorizationCode;
+    private String accessToken;
 
     @Override
     public OAuthProvider oAuthProvider() {
@@ -18,8 +18,11 @@ public class NaverLoginParams implements OAuthLoginParams {
 
     @Override
     public MultiValueMap<String, String> makeBody() {
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("code", authorizationCode);
-        return body;
+        return null;
+    }
+
+    @Override
+    public String getAccessToken() {
+        return accessToken;
     }
 }
