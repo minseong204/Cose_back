@@ -40,6 +40,10 @@ public class SecurityConfig {
                 .antMatchers("/api/auth/kakao/**").permitAll()
                 .antMatchers("/oauth/callback/kakao").permitAll()
                 .antMatchers("/v1/auth/kakao").permitAll()
+                .antMatchers("/api/auth/google/**").permitAll()
+                .antMatchers(("/api/auth/google")).permitAll()
+                .antMatchers("/oauth/callback/google").permitAll()
+                .antMatchers("/v1/auth/google").permitAll()
                 .antMatchers("/auth/login").permitAll()
                 .antMatchers("/auth/check-email").permitAll()
                 .antMatchers(HttpMethod.POST, "/courses/**").permitAll()
@@ -48,6 +52,11 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.DELETE, "/follow/**").hasRole("USER")
                 .antMatchers(HttpMethod.GET, "/location/search").permitAll()  // 추가된 부분
                 .antMatchers(HttpMethod.GET, "/location/keyword").permitAll()
+                .antMatchers(HttpMethod.POST, "/scrap/content/**").hasRole("USER")
+                .antMatchers(HttpMethod.POST, "/scrap/course/**").hasRole("USER")
+                .antMatchers(HttpMethod.GET, "/scrap/contents").hasRole("USER")
+                .antMatchers(HttpMethod.GET, "/scrap/courses").hasRole("USER")
+                .antMatchers(HttpMethod.DELETE, "/scrap/**").hasRole("USER")
                 .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
