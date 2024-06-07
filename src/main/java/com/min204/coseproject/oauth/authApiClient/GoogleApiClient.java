@@ -33,7 +33,9 @@ public class GoogleApiClient implements OAuthApiClient {
 
     @Value("${oauth.google.secret}")
     private String clientSecret;
-    private String redirectUri = "http://localhost:8080/login/oauth2/code/google";
+
+    @Value("${oauth.google.redirect-uri}")
+    private String redirectUri;
     @Override
     public OAuthProvider oAuthProvider() {
         return OAuthProvider.GOOGLE;
@@ -68,9 +70,6 @@ public class GoogleApiClient implements OAuthApiClient {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         httpHeaders.set("Authorization", "Bearer " + accessToken);
-
-//        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-//        //https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}
 
         HttpEntity<String> entity = new HttpEntity<>(httpHeaders);
 
