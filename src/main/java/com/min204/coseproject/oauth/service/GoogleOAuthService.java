@@ -19,33 +19,45 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OAuthSignUpService {
+public class GoogleOAuthService {
     private final OAuthUserRepository oAuthUserRepository;
     private final AuthTokensGenerator authTokensGenerator;
-    private final RequestOAuthInfoService requestOAuthInfoService;
+    private final RequestOAuthGoogleInfoService requestOAuthInfoService;
     private final UserRepository userRepository;
 
-    public AuthTokens signUp(OAuthLoginParams params) {
+    public AuthTokens handleOAuth(OAuthLoginParams params) {
         OAuthInfoResponse oAuthInfoResponse = requestOAuthInfoService.request(params);
         log.info("mail : {}", oAuthInfoResponse.getEmail());
         log.info("nickname : {}", oAuthInfoResponse.getNickname());
         log.info("Type : {}", oAuthInfoResponse.getOAuthProvider());
 
-        // 이메일 중복 체크
         String email = oAuthInfoResponse.getEmail();
-        Optional<OAuthUser> existingOAuthUser = oAuthUserRepository.findByEmail(email);
-        Optional<User> existingLocalUser = userRepository.findByEmail(email);
+        try {
+            Optional<User> existingLocalUser = userRepository.findByEmail(email);
+            Optional<OAuthUser> existingOAuthUser = oAuthUserRepository.findByEmail(email);
 
-        if (existingOAuthUser.isPresent()) {
-            throw new EmailAlreadyExistsException(email, existingOAuthUser.get().getOAuthProvider().name());
+            if (existingLocalUser.isPresent()) {
+                throw new EmailAlreadyExistsException(email, "Local");
+            }
+
+            if (existingOAuthUser.isPresent()) {
+                if (existingOAuthUser.get().getEmail().equals(email) &&
+                        existingOAuthUser.get().getOAuthProvider() != oAuthInfoResponse.getOAuthProvider()) {
+                    throw new EmailAlreadyExistsException(email, existingOAuthUser.get().getOAuthProvider().name());
+                }
+
+                if (existingOAuthUser.get().getEmail().equals(email) &&
+                        existingOAuthUser.get().getOAuthProvider() == oAuthInfoResponse.getOAuthProvider()) {
+                    return loginUser(existingOAuthUser.get().getId());
+                }
+            }
+
+            Long userId = findOrCreateUser(oAuthInfoResponse);
+            return authTokensGenerator.generate(userId);
+
+        } catch (EmailAlreadyExistsException e) {
+            throw e;
         }
-
-        if (existingLocalUser.isPresent()) {
-            throw new EmailAlreadyExistsException(email, "Local");
-        }
-
-        Long userId = findOrCreateUser(oAuthInfoResponse);
-        return authTokensGenerator.generate(userId);
     }
 
     @Transactional
@@ -69,5 +81,9 @@ public class OAuthSignUpService {
                 .build();
 
         return oAuthUserRepository.save(user).getId();
+    }
+
+    private AuthTokens loginUser(Long userId) {
+        return authTokensGenerator.generate(userId);
     }
 }
