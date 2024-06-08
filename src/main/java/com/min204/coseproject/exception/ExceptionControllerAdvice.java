@@ -23,4 +23,13 @@ public class ExceptionControllerAdvice {
 
         return ResponseEntity.badRequest().body(errorDetails);
     }
+
+    @ExceptionHandler(BusinessLogicException.class)
+    public ResponseEntity<Map<String, Object>> handleBusinessLogicException(BusinessLogicException exception) {
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("success", false);
+        errorDetails.put("message", exception.getExceptionCode().getMessage());
+
+        return ResponseEntity.badRequest().body(errorDetails);
+    }
 }
