@@ -4,9 +4,7 @@ import com.min204.coseproject.oauth.dto.oAuthLoginParams.GoogleLoginParams;
 import com.min204.coseproject.oauth.dto.oAuthLoginParams.KakaoLoginParams;
 import com.min204.coseproject.oauth.dto.oAuthLoginParams.NaverLoginParams;
 import com.min204.coseproject.oauth.jwt.AuthTokens;
-import com.min204.coseproject.oauth.service.OAuthGoogleLoginService;
-import com.min204.coseproject.oauth.service.googleOAuthService;
-import com.min204.coseproject.oauth.service.OAuthLoginService;
+import com.min204.coseproject.oauth.service.GoogleOAuthService;
 import com.min204.coseproject.oauth.service.OAuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class OAuthController {
-    private final OAuthGoogleLoginService oAuthGoogleLoginService;
-    private final OAuthLoginService oAuthLoginService;
     private final OAuthService oAuthService;
-    private final googleOAuthService googleOAuthService;
+    private final GoogleOAuthService googleOAuthService;
 
     private String authUrl = "https://kauth.kakao.com/oauth/token";
 
