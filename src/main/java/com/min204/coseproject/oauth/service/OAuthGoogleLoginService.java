@@ -1,6 +1,8 @@
 package com.min204.coseproject.oauth.service;
 
+import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.EmailAlreadyExistsException;
+import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.oauth.dto.authInfoResponse.OAuthInfoResponse;
 import com.min204.coseproject.oauth.dto.oAuthLoginParams.OAuthLoginParams;
 import com.min204.coseproject.oauth.entity.OAuthUser;
@@ -24,7 +26,6 @@ public class OAuthGoogleLoginService {
     private final OAuthUserRepository oAuthUserRepository;
     private final AuthTokensGenerator authTokensGenerator;
     private final RequestOAuthGoogleInfoService requestOAuthInfoService;
-    private final UserRepository userRepository;
 
     public AuthTokens login(OAuthLoginParams params) {
         OAuthInfoResponse oAuthInfoResponse = requestOAuthInfoService.request(params);
@@ -35,53 +36,16 @@ public class OAuthGoogleLoginService {
         // 이메일 중복 체크
         String email = oAuthInfoResponse.getEmail();
         Optional<OAuthUser> existingOAuthUser = oAuthUserRepository.findByEmail(email);
-        Optional<User> existingLocalUser = userRepository.findByEmail(email);
 
-        if (existingOAuthUser.isPresent()) {
-            throw new EmailAlreadyExistsException(email, existingOAuthUser.get().getOAuthProvider().name());
+        if (!existingOAuthUser.isPresent()) {
+            throw new BusinessLogicException(ExceptionCode.INVALID_EMAIL);
         }
 
-        if (existingLocalUser.isPresent()) {
-            throw new EmailAlreadyExistsException(email, "Local");
-        }
 
-        Long userId = findOrCreateUser(oAuthInfoResponse);
+        Long userId = oAuthUserRepository.findByEmail(oAuthInfoResponse.getEmail())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.INVALID_EMAIL)).getId();
+
         return authTokensGenerator.generate(userId);
     }
 
-    @Transactional
-    public Long findOrCreateUser(OAuthInfoResponse oAuthInfoResponse) {
-        return oAuthUserRepository.findByEmail(oAuthInfoResponse.getEmail())
-                .map(OAuthUser::getId)
-                .orElseGet(() -> {
-                    try {
-                        return newUser(oAuthInfoResponse);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-    }
-
-    public static String uniqueString(int digit) throws Exception {
-        if(digit < 1) throw new Exception("can't generate");
-        String random = UUID.randomUUID().toString();
-        random = random.replaceAll("-", "");
-        random = random.substring(0, digit);
-        return random;
-    }
-    private Long newUser(OAuthInfoResponse oAuthInfoResponse) throws Exception {
-
-        String unique = uniqueString(6);
-
-        String nickname = oAuthInfoResponse.getNickname();
-        String uuidNickName = nickname + unique;
-
-        OAuthUser user = OAuthUser.builder()
-                .email(oAuthInfoResponse.getEmail())
-                .nickname(uuidNickName)
-                .oAuthProvider(oAuthInfoResponse.getOAuthProvider())
-                .build();
-
-        return oAuthUserRepository.save(user).getId();
-    }
 }
