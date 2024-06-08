@@ -5,9 +5,9 @@ import com.min204.coseproject.oauth.dto.oAuthLoginParams.KakaoLoginParams;
 import com.min204.coseproject.oauth.dto.oAuthLoginParams.NaverLoginParams;
 import com.min204.coseproject.oauth.jwt.AuthTokens;
 import com.min204.coseproject.oauth.service.OAuthGoogleLoginService;
-import com.min204.coseproject.oauth.service.OAuthGoogleSignUpService;
+import com.min204.coseproject.oauth.service.googleOAuthService;
 import com.min204.coseproject.oauth.service.OAuthLoginService;
-import com.min204.coseproject.oauth.service.OAuthSignUpService;
+import com.min204.coseproject.oauth.service.OAuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,8 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class OAuthController {
     private final OAuthGoogleLoginService oAuthGoogleLoginService;
     private final OAuthLoginService oAuthLoginService;
-    private final OAuthSignUpService oAuthSignUpService;
-    private final OAuthGoogleSignUpService oAuthGoogleSignUpService;
+    private final OAuthService oAuthService;
+    private final googleOAuthService googleOAuthService;
 
     private String authUrl = "https://kauth.kakao.com/oauth/token";
 
@@ -35,33 +35,18 @@ public class OAuthController {
     @Value("${oauth.kakao.client-id}")
     private String clientId;
 
-    @PostMapping("/kakao/signup")
+    @PostMapping("/kakao")
     public ResponseEntity<AuthTokens> signUpKakao(@RequestBody KakaoLoginParams params) {
-        return ResponseEntity.ok(oAuthSignUpService.signUp(params));
+        return ResponseEntity.ok(oAuthService.handleOAuth(params));
     }
 
-    @PostMapping("/kakao/login")
-    public ResponseEntity<AuthTokens> loginKakao(@RequestBody KakaoLoginParams params) {
-        return ResponseEntity.ok(oAuthLoginService.login(params));
-    }
-
-    @PostMapping("/naver/signup")
+    @PostMapping("/naver")
     public ResponseEntity<AuthTokens> signUpNaver(@RequestBody NaverLoginParams params) {
-        return ResponseEntity.ok(oAuthSignUpService.signUp(params));
+        return ResponseEntity.ok(oAuthService.handleOAuth(params));
     }
 
-    @PostMapping("/naver/login")
-    public ResponseEntity<AuthTokens> loginNaver(@RequestBody NaverLoginParams params) {
-        return ResponseEntity.ok(oAuthLoginService.login(params));
-    }
-
-    @PostMapping("/google/signup")
+    @PostMapping("/google")
     public ResponseEntity<AuthTokens> signUpGoogle(@RequestBody GoogleLoginParams params) {
-        return ResponseEntity.ok(oAuthGoogleSignUpService.signUp(params));
-    }
-
-    @PostMapping("/google/login")
-    public ResponseEntity<AuthTokens> loginGoogle(@RequestBody GoogleLoginParams params) {
-        return ResponseEntity.ok(oAuthGoogleLoginService.login(params));
+        return ResponseEntity.ok(googleOAuthService.handleOAuth(params));
     }
 }
