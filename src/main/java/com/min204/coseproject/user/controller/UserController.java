@@ -115,36 +115,6 @@ public class UserController {
     }
 
     /*
-     * 회원 프로필 사진 저장
-     * */
-    @PostMapping(value = "/file-save", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<ResBodyModel> userPhotoSave(@RequestPart(required = false) List<MultipartFile> files,
-                                                      @RequestPart(required = false) UserPhotoRequestDto userPhotoRequestDto) throws Exception {
-        log.info("userPhotoRequest: {}", userPhotoRequestDto.getEmail());
-        List<Object> userPhotos = userService.saveUserPhoto(userPhotoRequestDto, files);
-        return CoseResponse.toResponse(SuccessCode.SUCCESS, userPhotos);
-    }
-
-    /*
-     * 회원 프로필 사진 수정
-     * */
-    @SneakyThrows
-    @PostMapping(value = "/file-update", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<ResBodyModel> userPhotoUpdate(@RequestPart(required = false) List<MultipartFile> files,
-                                                        @RequestPart(required = false) UserPhotoRequestDto userPhotoRequestDto) {
-        log.info("UserPhotoRequest: {}", userPhotoRequestDto.getEmail());
-        User user = userService.find(userPhotoRequestDto.getEmail());
-        List<UserPhoto> userPhoto = userService.findUserPhoto(user.getUserId());
-
-        for (UserPhoto photo : userPhoto) {
-            userService.userPhotoDelete(photo);
-        }
-
-        List<Object> userPhotos = userService.saveUserPhoto(userPhotoRequestDto, files);
-        return CoseResponse.toResponse(SuccessCode.SUCCESS, userPhotos);
-    }
-
-    /*
      * 비밀번호 재설정 이메일 요청
      * */
     @PostMapping("/password-reset-request")
