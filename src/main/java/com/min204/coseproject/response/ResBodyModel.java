@@ -20,6 +20,8 @@ public class ResBodyModel {
         this.dateTime = dateTime;
         this.data = data;
     }
+
+
 }
 
 

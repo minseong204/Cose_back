@@ -38,6 +38,8 @@ public interface UserService {
 
     boolean resetPassword(String email, String newPassword);
 
+    String checkUserPlatform(String email);
+
     boolean checkEmailExists(String email);
 
     boolean isEmailExists(String email);
