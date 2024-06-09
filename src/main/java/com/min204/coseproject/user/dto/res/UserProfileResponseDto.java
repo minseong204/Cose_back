@@ -13,4 +13,5 @@ public class UserProfileResponseDto {
     private List<Long> contentIds;
     private int followerCount;
     private int followingCount;
+    private String profileImagePath;
 }

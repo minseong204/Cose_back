@@ -25,7 +25,7 @@ public class GoogleOAuthService {
     private final AuthTokensGenerator authTokensGenerator;
     private final RequestOAuthGoogleInfoService requestOAuthInfoService;
     private final UserRepository userRepository;
-    private final String DEFAULT_IMAGE_PATH = "src/main/resources/img/defaultImage.svg";
+    private final String DEFAULT_IMAGE_PATH = "classpath:img/defaultImage.svg";
 
     public AuthTokens handleOAuth(OAuthLoginParams params) {
         OAuthInfoResponse oAuthInfoResponse = requestOAuthInfoService.request(params);

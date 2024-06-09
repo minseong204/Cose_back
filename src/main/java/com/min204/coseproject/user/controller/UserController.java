@@ -3,6 +3,7 @@ package com.min204.coseproject.user.controller;
 import com.min204.coseproject.auth.dto.AuthEmailRequestDto;
 import com.min204.coseproject.auth.service.AuthEmailService;
 import com.min204.coseproject.constant.SuccessCode;
+import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.oauth.entity.OAuthUser;
 import com.min204.coseproject.oauth.entity.OAuthUserPhoto;
@@ -164,11 +165,18 @@ public class UserController {
 
     /*
      * 사용자 별 프로필 정보 반환
-     * */
-    @GetMapping("/user/profile")
+     */
+    @GetMapping("/profile")
     public ResponseEntity<ResBodyModel> getUserProfile(@RequestParam String email) {
-        UserProfileResponseDto userProfile = userService.getUserProfile(email);
-        return CoseResponse.toResponse(SuccessCode.SUCCESS, userProfile);
+        try {
+            UserProfileResponseDto userProfile = userService.getUserProfile(email);
+            return CoseResponse.toResponse(SuccessCode.SUCCESS, userProfile);
+        } catch (BusinessLogicException e) {
+            return CoseResponse.toErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND.value());
+        } catch (Exception e) {
+            log.error("사용자 프로필을 검색하는 중 오류가 발생했습니다. ", e);
+            return CoseResponse.toErrorResponse("사용자 프로필을 조회하는 중에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
     }
 
     /*

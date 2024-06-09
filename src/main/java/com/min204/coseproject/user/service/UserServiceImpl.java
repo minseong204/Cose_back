@@ -50,6 +50,9 @@ public class UserServiceImpl implements UserService {
     private final ContentRepository contentRepository;
     private final FollowRepository followRepository;
 
+    // 기본이미지 경로
+    private static final String DEFAULT_IMAGE_PATH = "classpath:img/defaultImage.svg";
+
     @Override
     public User find(String email) {
         return userDao.findByEmail(email);
@@ -57,15 +60,45 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserProfileResponseDto getUserProfile(String email) {
-        User user = find(email);
+        Optional<User> localUserOpt = userRepository.findByEmail(email);
+        if (localUserOpt.isPresent()) {
+            User localUser = localUserOpt.get();
+            return buildUserProfileResponse(localUser);
+        } else {
+            Optional<OAuthUser> oAuthUserOpt = oAuthUserRepository.findByEmail(email);
+            if (oAuthUserOpt.isPresent()) {
+                OAuthUser oAuthUser = oAuthUserOpt.get();
+                return buildOAuthUserProfileResponse(oAuthUser);
+            } else {
+                throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
+            }
+        }
+    }
+
+    private UserProfileResponseDto buildUserProfileResponse(User user) {
         int postCount = contentRepository.countByUser(user);
         int followerCount = followRepository.countByFollowee(user);
         int followingCount = followRepository.countByFollower(user);
         List<Long> contentIds = contentRepository.findAllByUser(user).stream()
                 .map(Content::getContentId)
                 .collect(Collectors.toList());
+        String profileImagePath = user.getUserPhoto() != null ? user.getUserPhoto().getFilePath() :
+                DEFAULT_IMAGE_PATH;
 
-        return new UserProfileResponseDto(user.getNickname(), postCount, contentIds, followerCount, followingCount);
+        return new UserProfileResponseDto(user.getNickname(), postCount, contentIds, followerCount, followingCount, profileImagePath);
+    }
+
+    private UserProfileResponseDto buildOAuthUserProfileResponse(OAuthUser oAuthUser) {
+        int postCount = contentRepository.countByUserEmail(oAuthUser.getEmail());
+        int followerCount = followRepository.countByFolloweeEmail(oAuthUser.getEmail());
+        int followingCount = followRepository.countByFollowerEmail(oAuthUser.getEmail());
+        List<Long> contentIds = contentRepository.findAllByUserEmail(oAuthUser.getEmail()).stream()
+                .map(Content::getContentId)
+                .collect(Collectors.toList());
+        String profileImagePath = oAuthUser.getOAuthUserPhoto() != null ? oAuthUser.getOAuthUserPhoto().getFilePath() :
+                DEFAULT_IMAGE_PATH;
+
+        return new UserProfileResponseDto(oAuthUser.getNickname(), postCount, contentIds, followerCount, followingCount, profileImagePath);
     }
 
     @Override

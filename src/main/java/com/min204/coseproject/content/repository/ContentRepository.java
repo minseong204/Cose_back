@@ -18,4 +18,10 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     int countByUser(User user);
 
     List<Content> findAllByUser(User user);
+
+    @Query("SELECT COUNT(c) FROM Content c WHERE c.user.email = :email")
+    int countByUserEmail(@Param("email") String email);
+
+    @Query("SELECT c FROM Content c WHERE c.user.email = :email")
+    List<Content> findAllByUserEmail(@Param("email") String email);
 }
