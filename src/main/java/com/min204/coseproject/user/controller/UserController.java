@@ -1,6 +1,10 @@
 package com.min204.coseproject.user.controller;
 
+import com.min204.coseproject.auth.dto.AuthEmailRequestDto;
+import com.min204.coseproject.auth.service.AuthEmailService;
 import com.min204.coseproject.constant.SuccessCode;
+import com.min204.coseproject.exception.ExceptionCode;
+import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.response.CoseResponse;
 import com.min204.coseproject.response.ResBodyModel;
 import com.min204.coseproject.response.SingleResponseDto;
@@ -37,6 +41,8 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final UserPhotoMapper userPhotoMapper;
+    private final AuthEmailService authEmailService;
+    private final RedisUtil redisUtil;
 
     /*
      * 단일 회원 로그인 조회
@@ -138,10 +144,30 @@ public class UserController {
     public ResponseEntity<ResBodyModel> requestPasswordReset(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         try {
-            userService.sendPasswordResetEmail(email);
-            return CoseResponse.toResponse(SuccessCode.SUCCESS);
+            String platform = userService.checkUserPlatform(email);
+            if (!platform.equals("LOCAL")) {
+                return CoseResponse.toErrorResponse("회원님은 " + platform + "에서 회원가입하셨습니다.", HttpStatus.BAD_REQUEST.value());
+            }
+            authEmailService.sendEmail(email);
+            return CoseResponse.toResponse("이메일을 확인하세요", SuccessCode.SUCCESS);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return CoseResponse.toErrorResponse("이메일 형식이 유효하지 않거나, 없는 회원정보입니다.", HttpStatus.BAD_REQUEST.value());
+        }
+    }
+
+    /*
+     * 이메일 변경 인증번호 비교
+     * */
+    @PostMapping("/verify-code")
+    public ResponseEntity<ResBodyModel> verifyCode(@RequestBody Map<String, String> request) {
+
+        String email = request.get("email");
+        String code = request.get("code");
+
+        if (authEmailService.verifyEmailCode(email, code)) {
+            return CoseResponse.toResponse("인증성공", SuccessCode.SUCCESS);
+        } else {
+            return CoseResponse.toErrorResponse("인증코드가 올바르지 않습니다.", HttpStatus.BAD_REQUEST.value());
         }
     }
 
@@ -153,7 +179,7 @@ public class UserController {
         String email = request.get("email");
         String newPassword = request.get("newPassword");
         if (userService.resetPassword(email, newPassword)) {
-            return CoseResponse.toResponse(SuccessCode.SUCCESS);
+            return CoseResponse.toResponse("비밀번호 변경 성공", SuccessCode.SUCCESS);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

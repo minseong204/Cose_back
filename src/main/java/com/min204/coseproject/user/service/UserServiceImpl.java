@@ -5,6 +5,7 @@ import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.follow.repository.FollowRepository;
+import com.min204.coseproject.oauth.entity.OAuthUser;
 import com.min204.coseproject.oauth.repository.OAuthUserRepository;
 import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.user.dao.UserDao;
@@ -134,7 +135,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void sendPasswordResetEmail(String email) throws Exception {
-        User user = userDao.findByEmail(email);
+        // User user = userDao.findByEmail(email);
         String token = UUID.randomUUID().toString();
         redisUtil.setDataExpire(email, token, 60 * 30L);  // 30분 동안 유효
         authEmailService.sendPasswordResetEmail(email, token);
@@ -147,6 +148,22 @@ public class UserServiceImpl implements UserService {
         userDao.save(user);
         redisUtil.deleteData(email);
         return true;
+    }
+
+    @Override
+    public String checkUserPlatform(String email) {
+        Optional<User> localUser = userRepository.findByEmail(email);
+        Optional<OAuthUser> oauthUser = oAuthUserRepository.findByEmail(email);
+
+        if (localUser.isPresent()) {
+            return "LOCAL";
+        }
+
+        if (oauthUser.isPresent()) {
+            return oauthUser.get().getOAuthProvider().name();
+        }
+
+        throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
     }
 
     @Override
