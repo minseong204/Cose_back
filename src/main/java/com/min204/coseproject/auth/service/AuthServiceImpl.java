@@ -36,15 +36,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User save(AuthSigUpRequestDto authSigUpRequestDto) {
-        existsByEmail(authSigUpRequestDto.getEmail());
         String encode = encoder.encode(authSigUpRequestDto.getPassword());
 
-        User user = User.builder()
-                .email(authSigUpRequestDto.getEmail())
-                .password(encode)
-                .nickname(authSigUpRequestDto.getNickname())
-                .roles(Collections.singletonList(UserRoles.USER.getRole()))
-                .build();
+        User user = User.createUser(
+                authSigUpRequestDto.getEmail(),
+                encode,
+                authSigUpRequestDto.getNickname(),
+                Collections.singletonList(UserRoles.USER.getRole()),
+                "src/main/resources/img/defaultImage.svg" // 기본 이미지 경로 설정
+        );
+        existsByEmail(user.getEmail());
 
         return userDao.save(user);
     }

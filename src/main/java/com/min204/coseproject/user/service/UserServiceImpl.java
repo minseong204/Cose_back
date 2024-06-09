@@ -6,6 +6,7 @@ import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.follow.repository.FollowRepository;
 import com.min204.coseproject.oauth.entity.OAuthUser;
+import com.min204.coseproject.oauth.entity.OAuthUserPhoto;
 import com.min204.coseproject.oauth.repository.OAuthUserRepository;
 import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.user.dao.UserDao;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -94,12 +96,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserPhoto> saveUserPhoto(UserPhotoRequestDto userPhotoRequestDto, List<MultipartFile> files) throws Exception {
-        List<UserPhoto> userPhotos = userFileHandler.parseFileInfo(files);
-        User user = userDao.findByEmail(userPhotoRequestDto.getEmail());
-        for (UserPhoto userPhoto : userPhotos) {
-            userPhotoDao.saveUserPhoto(userPhoto);
-            userPhoto.addUser(user);
+    public List<Object> saveUserPhoto(UserPhotoRequestDto userPhotoRequestDto, List<MultipartFile> files) throws Exception {
+        String email = userPhotoRequestDto.getEmail();
+        String userPlatform = checkUserPlatform(email);
+        List<Object> userPhotos = new ArrayList<>();
+
+        switch (userPlatform) {
+            case "LOCAL":
+                User user = userDao.findByEmail(email);
+                for (MultipartFile file : files) {
+                    UserPhoto userPhoto = userFileHandler.parseFileInfo(file, user);
+                    userPhotoDao.saveUserPhoto(userPhoto);
+                    userPhoto.addUser(user);
+                    userPhotos.add(userPhoto);
+                }
+                break;
+            case "GOOGLE":
+            case "KAKAO":
+            case "NAVER":
+                Optional<OAuthUser> oAuthUserOpt = oAuthUserRepository.findByEmail(email);
+                if (!oAuthUserOpt.isPresent()) {
+                    throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
+                }
+
+                OAuthUser oAuthUser = oAuthUserOpt.get();
+                for (MultipartFile file : files) {
+                    OAuthUserPhoto oAuthUserPhoto = userFileHandler.parseOAuthFileInfo(file, oAuthUser);
+                    oAuthUser.setOAuthUserPhoto(oAuthUserPhoto);
+                    oAuthUserRepository.save(oAuthUser);
+                    userPhotos.add(oAuthUserPhoto);
+                }
+                break;
+            default:
+                throw new BusinessLogicException(ExceptionCode.INVALID_PLATFORM);
         }
         return userPhotos;
     }

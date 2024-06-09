@@ -11,6 +11,8 @@ public class NaverInfoResponse implements OAuthInfoResponse {
     @JsonProperty("response")
     private Response response;
 
+    private String picture;
+
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class Response {
@@ -31,5 +33,10 @@ public class NaverInfoResponse implements OAuthInfoResponse {
     @Override
     public OAuthProvider getOAuthProvider() {
         return OAuthProvider.NAVER;
+    }
+
+    @Override
+    public String getPicture() {
+        return picture;
     }
 }

@@ -27,6 +27,7 @@ public enum ExceptionCode {
     USER_NOT_LOGIN(400, "User Not Login"),
     INVALID_USER_STATUS(400, "Invalid User Status"),
     INVALID_VALUES(400, "Invalid Values"),
+    INVALID_PLATFORM(400, "플랫폼이 일치하지 않습니다."),
     INVALID_ACCESS_TOKEN(400,"권한 정보 없는 토큰"),
     INVALID_REFRESH_TOKEN(400, "Invalid Refresh_Token"),
 

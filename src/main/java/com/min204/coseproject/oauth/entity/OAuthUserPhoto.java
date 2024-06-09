@@ -1,4 +1,4 @@
-package com.min204.coseproject.user.entity;
+package com.min204.coseproject.oauth.entity;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,15 +9,15 @@ import javax.persistence.*;
 @Getter
 @Entity
 @NoArgsConstructor
-public class UserPhoto {
+public class OAuthUserPhoto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_photo_id")
-    private Long userPhotoId;
+    @Column(name = "oauth_user_photo_id")
+    private Long oAuthUserPhotoId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "oauth_user_id")
+    private OAuthUser oAuthUser;
 
     @Column(nullable = false)
     private String originFileName;
@@ -28,19 +28,13 @@ public class UserPhoto {
     private Long fileSize;
 
     @Builder
-    public UserPhoto(String originFileName, String filePath, Long fileSize) {
+    public OAuthUserPhoto(String originFileName, String filePath, Long fileSize) {
         this.originFileName = originFileName;
         this.filePath = filePath;
         this.fileSize = fileSize;
     }
 
-    public UserPhoto(String filePath) {
-        this.originFileName = "defaultImage";
-        this.filePath = filePath;
-        this.fileSize = 0L;
-    }
-
-    public void addUser(User user) {
-        this.user = user;
+    public void addOAuthUser(OAuthUser oAuthUser) {
+        this.oAuthUser = oAuthUser;
     }
 }

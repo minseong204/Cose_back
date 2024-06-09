@@ -24,7 +24,7 @@ public interface UserService {
 
     void delete(Long userId);
 
-    List<UserPhoto> saveUserPhoto(UserPhotoRequestDto userPhotoRequestDto, List<MultipartFile> files) throws Exception;
+    List<Object> saveUserPhoto(UserPhotoRequestDto userPhotoRequestDto, List<MultipartFile> files) throws Exception;
 
     List<UserPhoto> findUserPhoto(Long userId);
 

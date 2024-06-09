@@ -17,6 +17,8 @@ public class KakaoInfoResponse implements OAuthInfoResponse {
     @JsonProperty("kakao_account")
     private KakaoAccount kakaoAccount;
 
+    private String picture;
+
     @Override
     public String getEmail() {
         return kakaoAccount.getEmail();
@@ -30,6 +32,11 @@ public class KakaoInfoResponse implements OAuthInfoResponse {
     @Override
     public OAuthProvider getOAuthProvider() {
         return OAuthProvider.KAKAO;
+    }
+
+    @Override
+    public String getPicture() {
+        return picture;
     }
 
     @Getter
