@@ -38,4 +38,8 @@ public class OAuthUser {
         this.oAuthUserPhoto = oAuthUserPhoto;
         oAuthUserPhoto.addOAuthUser(this);
     }
+
+    public void getUser(OAuthUser oAuthUser) {
+
+    }
 }

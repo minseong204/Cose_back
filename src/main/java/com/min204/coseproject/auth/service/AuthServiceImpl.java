@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
                 encode,
                 authSigUpRequestDto.getNickname(),
                 Collections.singletonList(UserRoles.USER.getRole()),
-                "src/main/resources/img/defaultImage.svg" // 기본 이미지 경로 설정
+                "classpath:img/defaultImage.svg" // 기본 이미지 경로 설정
         );
         existsByEmail(user.getEmail());
 
