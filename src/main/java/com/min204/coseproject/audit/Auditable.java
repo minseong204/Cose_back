@@ -25,10 +25,4 @@ public abstract class Auditable {
     @Column(name = "LAST_MODIFIED_AT")
     private LocalDateTime modifiedAt;
 
-    @CreatedBy
-    @Column(updatable = false)
-    private String createdBy;
-
-    @LastModifiedBy
-    private String modifiedBy;
 }
