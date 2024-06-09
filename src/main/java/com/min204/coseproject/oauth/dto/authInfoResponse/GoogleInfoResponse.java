@@ -5,12 +5,8 @@ import com.min204.coseproject.oauth.entity.OAuthProvider;
 public class GoogleInfoResponse implements OAuthInfoResponse {
     public String id;
     public String email;
-    public Boolean verifiedEmail;
     public String name;
-    public String givenName;
-    public String familyName;
     public String picture;
-    public String locale;
 
     @Override
     public String getEmail() {
@@ -25,5 +21,10 @@ public class GoogleInfoResponse implements OAuthInfoResponse {
     @Override
     public OAuthProvider getOAuthProvider() {
         return OAuthProvider.GOOGLE;
+    }
+
+    @Override
+    public String getPicture() {
+        return picture;
     }
 }

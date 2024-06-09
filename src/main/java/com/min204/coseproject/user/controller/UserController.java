@@ -4,6 +4,9 @@ import com.min204.coseproject.auth.dto.AuthEmailRequestDto;
 import com.min204.coseproject.auth.service.AuthEmailService;
 import com.min204.coseproject.constant.SuccessCode;
 import com.min204.coseproject.exception.ExceptionCode;
+import com.min204.coseproject.oauth.entity.OAuthUser;
+import com.min204.coseproject.oauth.entity.OAuthUserPhoto;
+import com.min204.coseproject.oauth.repository.OAuthUserRepository;
 import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.response.CoseResponse;
 import com.min204.coseproject.response.ResBodyModel;
@@ -16,8 +19,10 @@ import com.min204.coseproject.user.dto.res.ResponseUserInfoDto;
 import com.min204.coseproject.user.dto.res.UserProfileResponseDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
+import com.min204.coseproject.user.handler.UserFileHandler;
 import com.min204.coseproject.user.mapper.UserMapper;
 import com.min204.coseproject.user.mapper.UserPhotoMapper;
+import com.min204.coseproject.user.repository.UserRepository;
 import com.min204.coseproject.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -42,7 +47,9 @@ public class UserController {
     private final UserMapper userMapper;
     private final UserPhotoMapper userPhotoMapper;
     private final AuthEmailService authEmailService;
-    private final RedisUtil redisUtil;
+    private final UserRepository userRepository;
+    private final OAuthUserRepository oAuthUserRepository;
+    private final UserFileHandler userFileHandler;
 
     /*
      * 단일 회원 로그인 조회
@@ -114,7 +121,7 @@ public class UserController {
     public ResponseEntity<ResBodyModel> userPhotoSave(@RequestPart(required = false) List<MultipartFile> files,
                                                       @RequestPart(required = false) UserPhotoRequestDto userPhotoRequestDto) throws Exception {
         log.info("userPhotoRequest: {}", userPhotoRequestDto.getEmail());
-        List<UserPhoto> userPhotos = userService.saveUserPhoto(userPhotoRequestDto, files);
+        List<Object> userPhotos = userService.saveUserPhoto(userPhotoRequestDto, files);
         return CoseResponse.toResponse(SuccessCode.SUCCESS, userPhotos);
     }
 
@@ -133,7 +140,7 @@ public class UserController {
             userService.userPhotoDelete(photo);
         }
 
-        List<UserPhoto> userPhotos = userService.saveUserPhoto(userPhotoRequestDto, files);
+        List<Object> userPhotos = userService.saveUserPhoto(userPhotoRequestDto, files);
         return CoseResponse.toResponse(SuccessCode.SUCCESS, userPhotos);
     }
 
@@ -192,5 +199,39 @@ public class UserController {
     public ResponseEntity<ResBodyModel> getUserProfile(@RequestParam String email) {
         UserProfileResponseDto userProfile = userService.getUserProfile(email);
         return CoseResponse.toResponse(SuccessCode.SUCCESS, userProfile);
+    }
+
+    /*
+     * 사용자 프로필 사진 변경
+     * */
+    @PostMapping("/profile-photo")
+    public ResponseEntity<ResBodyModel> updateProfilePhoto(@RequestParam("email") String email,
+                                                           @RequestParam("file") MultipartFile file) {
+        try {
+            Optional<User> localUserOpt = userRepository.findByEmail(email);
+            Optional<OAuthUser> oAuthUserOpt = oAuthUserRepository.findByEmail(email);
+
+            if (localUserOpt.isPresent()) {
+                User localUser = localUserOpt.get();
+                UserPhoto userPhoto = userFileHandler.parseFileInfo(file, localUser);
+                localUser.setUserPhoto(userPhoto);
+                userRepository.save(localUser);
+                return CoseResponse.toResponse(SuccessCode.SUCCESS, "로컬 사용자의 프로필 사진이 업데이트되었습니다.");
+            }
+
+            if (oAuthUserOpt.isPresent()) {
+                OAuthUser oAuthUser = oAuthUserOpt.get();
+                OAuthUserPhoto oAuthUserPhoto = userFileHandler.parseOAuthFileInfo(file, oAuthUser);
+                oAuthUser.setOAuthUserPhoto(oAuthUserPhoto);
+                oAuthUserRepository.save(oAuthUser);
+                return CoseResponse.toResponse(SuccessCode.SUCCESS, "OAuth 사용자의 프로필 사진이 업데이트되었습니다.");
+            }
+
+            return CoseResponse.toErrorResponse( "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value());
+
+        } catch (Exception e) {
+            log.error("Error updating profile photo: ", e);
+            return CoseResponse.toErrorResponse("프로필 사진을 업데이트하는 중에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
     }
 }

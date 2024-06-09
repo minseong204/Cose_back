@@ -1,9 +1,11 @@
 package com.min204.coseproject.user.handler;
 
+import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
+import com.min204.coseproject.oauth.entity.OAuthUser;
+import com.min204.coseproject.oauth.entity.OAuthUserPhoto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,70 +14,70 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Component
 public class UserFileHandler {
-    public List<UserPhoto> parseFileInfo(
-            List<MultipartFile> multipartFiles
-    ) throws Exception {
-        List<UserPhoto> fileList = new ArrayList<>();
 
-        if (!CollectionUtils.isEmpty(multipartFiles)) {
-            LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+    public UserPhoto parseFileInfo(MultipartFile multipartFile, User user) throws Exception {
+        return saveFile(multipartFile, "user_images");
+    }
 
-            String current_date = now.format(dateTimeFormatter);
+    public OAuthUserPhoto parseOAuthFileInfo(MultipartFile multipartFile, OAuthUser oAuthUser) throws Exception {
+        return saveFile(multipartFile, "oauth_user_images");
+    }
 
-            String absolutePath = new File("").getAbsolutePath() + File.separator + File.separator;
+    private <T> T saveFile(MultipartFile multipartFile, String baseDir) throws Exception {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-            String path = "user_images" + File.separator + current_date;
-            File file = new File(path);
+        String currentDate = now.format(dateTimeFormatter);
 
-            if (!file.exists()) {
-                boolean wasSuccessful = file.mkdirs();
+        String absolutePath = new File("").getAbsolutePath() + File.separator + File.separator;
 
-                if (!wasSuccessful)
-                    System.out.println("file : was not successful");
-            }
+        String path = baseDir + File.separator + currentDate;
+        File file = new File(path);
 
-            for (MultipartFile multipartFile : multipartFiles) {
-                String contentType = multipartFile.getContentType();
+        if (!file.exists()) {
+            boolean wasSuccessful = file.mkdirs();
 
-                if (ObjectUtils.isEmpty(contentType)) {
-                    break;
-                } else {
-                    if (contentType.contains("image/jpeg"))
-                        log.info("jpeg");
-                    else if (contentType.contains("image/png"))
-                        log.info("png");
-                    else
-                        break;
-                }
-
-                String new_file_name = multipartFile.getOriginalFilename();
-
-                UserPhoto photo = UserPhoto.builder()
-                        .originFileName(multipartFile.getOriginalFilename())
-                        .filePath(path + File.separator + new_file_name)
-                        .fileSize(multipartFile.getSize())
-                        .build();
-
-                UserPhoto userPhoto = new UserPhoto(
-                        photo.getOriginFileName(),
-                        photo.getFilePath(),
-                        photo.getFileSize()
-                );
-
-                fileList.add(userPhoto);
-
-                Path path1 = Paths.get(absolutePath + path + File.separator + new_file_name).toAbsolutePath();
-                multipartFile.transferTo(path1);
-
+            if (!wasSuccessful) {
+                throw new Exception("Failed to create directory");
             }
         }
-        return fileList;
+
+        String contentType = multipartFile.getContentType();
+
+        if (ObjectUtils.isEmpty(contentType) || (!contentType.contains("image/jpeg") && !contentType.contains("image/png"))) {
+            throw new Exception("Invalid image format. Only JPEG and PNG are supported.");
+        }
+
+        String newFileName = multipartFile.getOriginalFilename();
+
+        if (baseDir.equals("user_images")) {
+            UserPhoto photo = UserPhoto.builder()
+                    .originFileName(multipartFile.getOriginalFilename())
+                    .filePath(path + File.separator + newFileName)
+                    .fileSize(multipartFile.getSize())
+                    .build();
+
+            Path path1 = Paths.get(absolutePath + path + File.separator + newFileName).toAbsolutePath();
+            multipartFile.transferTo(path1);
+
+            return (T) photo;
+        } else if (baseDir.equals("oauth_user_images")) {
+            OAuthUserPhoto photo = OAuthUserPhoto.builder()
+                    .originFileName(multipartFile.getOriginalFilename())
+                    .filePath(path + File.separator + newFileName)
+                    .fileSize(multipartFile.getSize())
+                    .build();
+
+            Path path1 = Paths.get(absolutePath + path + File.separator + newFileName).toAbsolutePath();
+            multipartFile.transferTo(path1);
+
+            return (T) photo;
+        } else {
+            throw new Exception("Invalid base directory");
+        }
     }
 }

@@ -9,11 +9,10 @@ import javax.persistence.*;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "user_photo")
 public class UserPhoto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_photo_seq")
+    @Column(name = "user_photo_id")
     private Long userPhotoId;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -33,6 +32,12 @@ public class UserPhoto {
         this.originFileName = originFileName;
         this.filePath = filePath;
         this.fileSize = fileSize;
+    }
+
+    public UserPhoto(String filePath) {
+        this.originFileName = "defaultImage";
+        this.filePath = filePath;
+        this.fileSize = 0L;
     }
 
     public void addUser(User user) {

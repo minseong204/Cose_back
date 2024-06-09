@@ -58,6 +58,9 @@ public class User implements UserDetails {
     @Column(name = "reset_token")
     private String resetToken;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private UserPhoto userPhoto;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream()
@@ -93,6 +96,22 @@ public class User implements UserDetails {
 
     public void addHeart(Heart heart) {
         hearts.add(heart);
+    }
+
+    public void setUserPhoto(UserPhoto userPhoto) {
+        this.userPhoto = userPhoto;
+        userPhoto.addUser(this);
+    }
+
+    public static User createUser(String email, String password, String nickname, List<String> roles, String defaultImagePath) {
+        User user = User.builder()
+                .email(email)
+                .password(password)
+                .nickname(nickname)
+                .roles(roles)
+                .build();
+        user.setUserPhoto(new UserPhoto(defaultImagePath));
+        return user;
     }
 
     @Override
