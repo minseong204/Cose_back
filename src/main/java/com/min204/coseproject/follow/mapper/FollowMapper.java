@@ -26,11 +26,11 @@ public class FollowMapper {
                 .build();
     }
 
-    public List<ResponseFollowerDto> toFollowerDtoList(List<User> users) {
+    public List<ResponseFollowerDto> toFollowerDtoList(List<Object> users) {
         return users.stream().map(this::toFollowerDto).collect(Collectors.toList());
     }
 
-    public List<ResponseFolloweeDto> toFolloweeDtoList(List<User> users) {
+    public List<ResponseFolloweeDto> toFolloweeDtoList(List<Object> users) {
         return users.stream().map(this::toFolloweeDto).collect(Collectors.toList());
     }
 }
