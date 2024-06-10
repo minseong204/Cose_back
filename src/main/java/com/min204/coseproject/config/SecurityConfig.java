@@ -27,35 +27,37 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/auth/**").permitAll()
-                .antMatchers("/auth/email/**").permitAll()
-                .antMatchers("/users/**").permitAll()
-                .antMatchers("/users/user/profile").permitAll()
-                .antMatchers("/contents/**").permitAll()
-                .antMatchers("/comments/**").permitAll()
-                .antMatchers("/comments/**").permitAll()
-                .antMatchers("**/hearts").hasRole("USER")
-                .antMatchers("/email/**").permitAll()
-                .antMatchers("/api/auth/**").permitAll()
-                .antMatchers("/api/auth/kakao/**").permitAll()
-                .antMatchers("/oauth/callback/kakao").permitAll()
-                .antMatchers("/v1/auth/kakao").permitAll()
-                .antMatchers("/api/auth/google/**").permitAll()
-                .antMatchers(("/api/auth/google")).permitAll()
-                .antMatchers("/oauth/callback/google").permitAll()
-                .antMatchers("/v1/auth/google").permitAll()
-                .antMatchers("/auth/login").permitAll()
-                .antMatchers("/auth/check-email").permitAll()
-                .antMatchers(HttpMethod.POST, "/courses/**").permitAll()
+                .antMatchers(
+                        "/auth/**",
+                        "/auth/email/**",
+                        "/users/**",
+                        "/users/user/profile",
+                        "/contents/**",
+                        "/comments/**",
+                        "/email/**",
+                        "/api/auth/**",
+                        "/oauth/callback/**",
+                        "/v1/auth/**",
+                        "/auth/login",
+                        "/auth/check-email",
+                        "/courses/**",
+                        "/location/search",
+                        "/location/keyword"
+                ).permitAll()
+                .antMatchers("/**/hearts").hasRole("USER")
                 .antMatchers(HttpMethod.GET, "/follow/**").hasRole("USER")
                 .antMatchers(HttpMethod.POST, "/follow/**").hasRole("USER")
                 .antMatchers(HttpMethod.DELETE, "/follow/**").hasRole("USER")
-                .antMatchers(HttpMethod.GET, "/location/search").permitAll()  // 추가된 부분
-                .antMatchers(HttpMethod.GET, "/location/keyword").permitAll()
-                .antMatchers(HttpMethod.POST, "/scrap/content/**").hasRole("USER")
-                .antMatchers(HttpMethod.POST, "/scrap/course/**").hasRole("USER")
-                .antMatchers(HttpMethod.GET, "/scrap/contents").hasRole("USER")
-                .antMatchers(HttpMethod.GET, "/scrap/courses").hasRole("USER")
+                .antMatchers(
+                        HttpMethod.POST,
+                        "/scrap/content/**",
+                        "/scrap/course/**"
+                ).hasRole("USER")
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/scrap/contents",
+                        "/scrap/courses"
+                ).hasRole("USER")
                 .antMatchers(HttpMethod.DELETE, "/scrap/**").hasRole("USER")
                 .anyRequest().authenticated()
                 .and()
