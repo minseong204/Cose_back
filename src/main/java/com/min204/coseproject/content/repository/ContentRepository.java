@@ -24,4 +24,5 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     @Query("SELECT c FROM Content c WHERE c.user.email = :email")
     List<Content> findAllByUserEmail(@Param("email") String email);
+
 }

@@ -1,36 +1,18 @@
-package com.min204.coseproject.user.mapper;
+package com.min204.coseproject.follow.mapper;
 
-import com.min204.coseproject.user.dto.res.ResponseFollowerDto;
-import com.min204.coseproject.user.dto.res.ResponseFolloweeDto;
-import com.min204.coseproject.user.entity.User;
-import org.springframework.stereotype.Component;
+import com.min204.coseproject.follow.dto.FollowDto;
+import com.min204.coseproject.follow.entity.Follow;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.util.List;
-import java.util.stream.Collectors;
+@Mapper(componentModel = "spring")
+public interface FollowMapper {
 
-@Component
-public class FollowMapper {
-    public ResponseFollowerDto toFollowerDto(User user) {
-        return ResponseFollowerDto.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .build();
-    }
-
-    public ResponseFolloweeDto toFolloweeDto(User user) {
-        return ResponseFolloweeDto.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .build();
-    }
-
-    public List<ResponseFollowerDto> toFollowerDtoList(List<Object> users) {
-        return users.stream().map(this::toFollowerDto).collect(Collectors.toList());
-    }
-
-    public List<ResponseFolloweeDto> toFolloweeDtoList(List<Object> users) {
-        return users.stream().map(this::toFolloweeDto).collect(Collectors.toList());
-    }
+    @Mapping(source = "follower.userId", target = "followerId")
+    @Mapping(source = "follower.email", target = "followerEmail")
+    @Mapping(source = "follower.nickname", target = "followerNickname")
+    @Mapping(source = "followee.userId", target = "followeeId")
+    @Mapping(source = "followee.email", target = "followeeEmail")
+    @Mapping(source = "followee.nickname", target = "followeeNickname")
+    FollowDto followToFollowDto(Follow follow);
 }

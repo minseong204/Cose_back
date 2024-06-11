@@ -15,12 +15,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,9 +32,10 @@ public class CourseService {
     private final UserService userService;
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
 
+    @Transactional
     public Course createCourse(Course course) {
         User currentUser = userService.getLoginMember();
         course.setUser(currentUser);
@@ -46,6 +47,7 @@ public class CourseService {
         return courseRepository.save(course);
     }
 
+    @Transactional
     public Course updateCourse(Long courseId, CoursePostDto courseDto) {
         Course findCourse = findVerifiedCourse(courseId);
 
@@ -59,13 +61,13 @@ public class CourseService {
         entityManager.flush();
 
         // 새로운 장소 추가
-        List<Place> updatedPlaces = courseDto.getPlaces().stream()
+        Set<Place> updatedPlaces = courseDto.getPlaces().stream()
                 .map(placeDto -> {
                     Place place = courseMapper.placeDtoToPlace(placeDto);
                     place.setCourse(findCourse);
                     return place;
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet()); // Collect to Set
 
         findCourse.setPlaces(updatedPlaces);
 

@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class ReissueTokensRequestDto {
     private String email;
+    private String refreshToken;
 }

@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum SuccessCode implements BodyCode {
-    SUCCESS( "PA01", "Done")
+    SUCCESS( "성공!", "Done")
     ;
     private final String code;
     private final String message;

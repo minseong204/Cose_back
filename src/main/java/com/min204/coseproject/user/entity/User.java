@@ -1,33 +1,27 @@
 package com.min204.coseproject.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.min204.coseproject.comment.entity.Comment;
+import com.min204.coseproject.constant.LoginType;
 import com.min204.coseproject.content.entity.Content;
-import com.min204.coseproject.heart.entity.Heart;
+import com.min204.coseproject.scrap.entity.Scrap;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @Builder
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -36,7 +30,7 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
 
     @Column(name = "nickname")
@@ -48,36 +42,46 @@ public class User implements UserDetails {
     private Date signUpDate;
 
     @JsonIgnore
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
-    private List<String> roles = new ArrayList<>();
+    private Set<String> roles = new HashSet<>();
 
     @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Column(name = "reset_token")
-    private String resetToken;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LoginType loginType;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Content> contents;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "photo_id")
     private UserPhoto userPhoto;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-    }
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private Set<Scrap> scraps = new HashSet<>();
 
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "user_followers",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "follower_id")
+    )
+    private Set<User> followers;
 
-    public void setResetToken(String resetToken) {
-        this.resetToken = resetToken;
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "user_following",
+            joinColumns = @JoinColumn(name = "follower_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> following;
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setUserPhoto(UserPhoto userPhoto) {
+        this.userPhoto = userPhoto;
     }
 
     public void changeInfo(UserRequestDto userRequestDto) {
@@ -85,38 +89,11 @@ public class User implements UserDetails {
         this.nickname = userRequestDto.getNickname();
     }
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Content> contents = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Heart> hearts = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Comment> comments = new ArrayList<>();
-
-    public void addHeart(Heart heart) {
-        hearts.add(heart);
-    }
-
-    public void setUserPhoto(UserPhoto userPhoto) {
-        this.userPhoto = userPhoto;
-        userPhoto.addUser(this);
-    }
-
-    public static User createUser(String email, String password, String nickname, List<String> roles, String defaultImagePath) {
-        User user = User.builder()
-                .email(email)
-                .password(password)
-                .nickname(nickname)
-                .roles(roles)
-                .build();
-        user.setUserPhoto(new UserPhoto(defaultImagePath));
-        return user;
-    }
-
     @Override
-    public String getPassword() {
-        return password;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     @Override

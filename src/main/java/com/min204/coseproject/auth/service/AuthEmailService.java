@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -79,19 +78,6 @@ public class AuthEmailService {
         return message;
     }
 
-    // 메일 반환 (비밀번호 재설정)
-    private MimeMessage createPasswordResetEmail(String email, String token) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        message.addRecipients(MimeMessage.RecipientType.TO, email);
-        message.setSubject("비밀번호 재설정 요청");
-        message.setFrom(configEmail);
-        message.setText(setResetContext(token), "utf-8", "html");
-
-        redisUtil.setDataExpire(email, token, 60 * 30L);  // 30분 동안 유효
-
-        return message;
-    }
-
     // 메일 보내기 (인증 코드)
     public void sendEmail(String toEmail) throws MessagingException {
         if (redisUtil.existData(toEmail)) {
@@ -99,12 +85,6 @@ public class AuthEmailService {
         }
 
         MimeMessage emailForm = createEmailForm(toEmail);
-        mailSender.send(emailForm);
-    }
-
-    // 메일 보내기 (비밀번호 재설정)
-    public void sendPasswordResetEmail(String toEmail, String token) throws MessagingException {
-        MimeMessage emailForm = createPasswordResetEmail(toEmail, token);
         mailSender.send(emailForm);
     }
 

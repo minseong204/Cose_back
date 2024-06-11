@@ -1,9 +1,8 @@
 package com.min204.coseproject.constant;
 
 public enum UserRoles {
-    USER("USER"),
-    ADMIN("ADMIN");
-    // Add more roles as needed
+    USER("ROLE_USER"),
+    ADMIN("ROLE_ADMIN");
 
     private final String role;
 
@@ -13,7 +12,6 @@ public enum UserRoles {
 
     public String getRole() {
         return role;
-
     }
 }
 

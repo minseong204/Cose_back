@@ -1,8 +1,5 @@
 package com.min204.coseproject.content.mapper;
 
-import com.min204.coseproject.comment.dto.CommentResponseDto;
-import com.min204.coseproject.comment.entity.Comment;
-import com.min204.coseproject.comment.repository.CommentRepository;
 import com.min204.coseproject.content.dto.ContentAllResponseDto;
 import com.min204.coseproject.content.dto.ContentPatchDto;
 import com.min204.coseproject.content.dto.ContentPostDto;
@@ -49,7 +46,6 @@ public abstract class ContentMapper {
                 .contentId(content.getContentId())
                 .email(user != null ? user.getEmail() : null)
                 .title(content.getTitle())
-                .heartCount(content.getHeartCount())
                 .viewCount(content.getViewCount())
                 .createdAt(content.getCreatedAt())
                 .modifiedAt(content.getModifiedAt())
@@ -63,10 +59,8 @@ public abstract class ContentMapper {
                 .collect(Collectors.toList());
     }
 
-    public ContentAllResponseDto contentToContentAllResponse(Content content, CommentRepository commentRepository, CourseRepository courseRepository) {
+    public ContentAllResponseDto contentToContentAllResponse(Content content, CourseRepository courseRepository) {
         User user = content.getUser();
-        List<Comment> comments = commentRepository.findAllByContentId(content.getContentId());
-        Collections.reverse(comments);
         List<Course> courses = courseRepository.findAllByContent_ContentId(content.getContentId());
 
         return ContentAllResponseDto.builder()
@@ -74,8 +68,6 @@ public abstract class ContentMapper {
                 .email(user != null ? user.getEmail() : null)
                 .nickName(user != null ? user.getNickname() : null)
                 .title(content.getTitle())
-                .heartCount(content.getHeartCount())
-                .comments(commentsToCommentResponseDtos(comments))
                 .createdAt(content.getCreatedAt())
                 .modifiedAt(content.getModifiedAt())
                 .courses(courseMapper.coursesToCourseResponseDtos(courses))
@@ -83,18 +75,4 @@ public abstract class ContentMapper {
                 .build();
     }
 
-    private List<CommentResponseDto> commentsToCommentResponseDtos(List<Comment> comments) {
-        return comments.stream()
-                .map(comment -> CommentResponseDto.builder()
-                        .commentId(comment.getCommentId())
-                        .contentId(comment.getContent().getContentId())
-                        .email(comment.getUser().getEmail())
-                        .body(comment.getBody())
-                        .createdAt(comment.getCreatedAt())
-                        .modifiedAt(comment.getModifiedAt())
-                        .title(comment.getContent().getTitle())
-                        .nickName(comment.getUser().getNickname())
-                        .build())
-                .collect(Collectors.toList());
-    }
 }

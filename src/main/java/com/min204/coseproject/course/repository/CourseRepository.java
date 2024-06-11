@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findAllByContent_ContentId(Long contentId);
 
+
     @Query("SELECT c FROM Course c JOIN FETCH c.places WHERE c.courseId = :courseId")
     Optional<Course> findCourseWithPlaces(@Param("courseId") Long courseId);
 }

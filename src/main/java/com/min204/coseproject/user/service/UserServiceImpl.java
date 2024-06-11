@@ -2,13 +2,15 @@ package com.min204.coseproject.user.service;
 
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.content.repository.ContentRepository;
+import com.min204.coseproject.course.entity.Course;
+import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.follow.repository.FollowRepository;
-import com.min204.coseproject.oauth.entity.OAuthUser;
-import com.min204.coseproject.oauth.entity.OAuthUserPhoto;
-import com.min204.coseproject.oauth.repository.OAuthUserRepository;
+import com.min204.coseproject.follow.service.FollowService;
 import com.min204.coseproject.redis.RedisUtil;
+import com.min204.coseproject.scrap.entity.Scrap;
+import com.min204.coseproject.scrap.repository.ScrapRepository;
 import com.min204.coseproject.user.dao.UserDao;
 import com.min204.coseproject.user.dao.UserPhotoDao;
 import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
@@ -17,21 +19,22 @@ import com.min204.coseproject.user.dto.res.UserProfileResponseDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
 import com.min204.coseproject.user.handler.UserFileHandler;
+import com.min204.coseproject.user.repository.UserPhotoRepository;
 import com.min204.coseproject.user.repository.UserRepository;
-import com.min204.coseproject.auth.service.AuthEmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,65 +43,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserDao userDao;
-    private final UserFileHandler userFileHandler;
     private final UserPhotoDao userPhotoDao;
     private final UserRepository userRepository;
-    private final AuthEmailService authEmailService;
     private final RedisUtil redisUtil;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final OAuthUserRepository oAuthUserRepository;
+    private final PasswordEncoder passwordEncoder;
     private final ContentRepository contentRepository;
     private final FollowRepository followRepository;
 
-    // 기본이미지 경로
-    private static final String DEFAULT_IMAGE_PATH = "classpath:img/defaultImage.svg";
 
-    @Override
-    public User find(String email) {
-        return userDao.findByEmail(email);
-    }
+    private static final String DEFAULT_IMAGE_PATH = "../defaultImage.svg";
 
-    @Override
-    public UserProfileResponseDto getUserProfile(String email) {
-        Optional<User> localUserOpt = userRepository.findByEmail(email);
-        if (localUserOpt.isPresent()) {
-            User localUser = localUserOpt.get();
-            return buildUserProfileResponse(localUser);
-        } else {
-            Optional<OAuthUser> oAuthUserOpt = oAuthUserRepository.findByEmail(email);
-            if (oAuthUserOpt.isPresent()) {
-                OAuthUser oAuthUser = oAuthUserOpt.get();
-                return buildOAuthUserProfileResponse(oAuthUser);
-            } else {
-                throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
-            }
+    private void validateCurrentUser(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.getName().equals(userId.toString())) {
+            throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
         }
-    }
-
-    private UserProfileResponseDto buildUserProfileResponse(User user) {
-        int postCount = contentRepository.countByUser(user);
-        int followerCount = followRepository.countByFollowee(user);
-        int followingCount = followRepository.countByFollower(user);
-        List<Long> contentIds = contentRepository.findAllByUser(user).stream()
-                .map(Content::getContentId)
-                .collect(Collectors.toList());
-        String profileImagePath = user.getUserPhoto() != null ? user.getUserPhoto().getFilePath() :
-                DEFAULT_IMAGE_PATH;
-
-        return new UserProfileResponseDto(user.getNickname(), postCount, contentIds, followerCount, followingCount, profileImagePath);
-    }
-
-    private UserProfileResponseDto buildOAuthUserProfileResponse(OAuthUser oAuthUser) {
-        int postCount = contentRepository.countByUserEmail(oAuthUser.getEmail());
-        int followerCount = followRepository.countByFolloweeEmail(oAuthUser.getEmail());
-        int followingCount = followRepository.countByFollowerEmail(oAuthUser.getEmail());
-        List<Long> contentIds = contentRepository.findAllByUserEmail(oAuthUser.getEmail()).stream()
-                .map(Content::getContentId)
-                .collect(Collectors.toList());
-        String profileImagePath = oAuthUser.getOAuthUserPhoto() != null ? oAuthUser.getOAuthUserPhoto().getFilePath() :
-                DEFAULT_IMAGE_PATH;
-
-        return new UserProfileResponseDto(oAuthUser.getNickname(), postCount, contentIds, followerCount, followingCount, profileImagePath);
     }
 
     @Override
@@ -107,64 +66,91 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserProfileResponseDto getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+        return buildUserProfileResponse(user);
+    }
+
+    private UserProfileResponseDto buildUserProfileResponse(User user) {
+        int postCount = contentRepository.countByUser(user);
+        int followerCount = followRepository.countByFollowee(user);
+        int followingCount = followRepository.countByFollower(user);
+
+        List<UserProfileResponseDto.ContentDto> posts = contentRepository.findAllByUser(user).stream()
+                .map(content -> UserProfileResponseDto.ContentDto.builder()
+                        .contentId(content.getContentId())
+                        .courses(content.getCourses().stream()
+                                .map(course -> UserProfileResponseDto.CourseDto.builder()
+                                        .courseId(course.getCourseId())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build())
+                .collect(Collectors.toList());
+
+        List<UserProfileResponseDto.UserDto> followers = followRepository.findByFollowee(user).stream()
+                .map(follow -> UserProfileResponseDto.UserDto.builder()
+                        .userId(follow.getFollower().getUserId())
+                        .email(follow.getFollower().getEmail())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<UserProfileResponseDto.UserDto> following = followRepository.findByFollower(user).stream()
+                .map(follow -> UserProfileResponseDto.UserDto.builder()
+                        .userId(follow.getFollowee().getUserId())
+                        .email(follow.getFollowee().getEmail())
+                        .build())
+                .collect(Collectors.toList());
+
+        String profileImagePath = user.getUserPhoto() != null ? user.getUserPhoto().getFilePath() : "../defaultImage.svg";
+
+        return UserProfileResponseDto.builder()
+                .nickname(user.getNickname())
+                .postCount(postCount)
+                .posts(posts)
+                .followerCount(followerCount)
+                .followers(followers)
+                .followingCount(followingCount)
+                .following(following)
+                .profileImagePath(profileImagePath)
+                .build();
+    }
+
+    @Override
     public List<User> findAll() {
         return userDao.findAll();
     }
 
     @Override
-    public User update(UserRequestDto userRequestDto) {
-        User user = userDao.findByEmail(userRequestDto.getEmail());
+    public Optional<User> update(UserRequestDto userRequestDto) {
+        User user = userDao.findById(userRequestDto.getUserId())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
         user.changeInfo(userRequestDto);
-        return user;
+        return Optional.of(user);
     }
 
-    @Override
-    public void delete(String email) {
-        userDao.delete(email);
-    }
+//    @Override
+//    public void delete(Long userId) {
+//        List<Scrap> scraps = scrapRepository.findByUserId(userId);
+//        scrapRepository.deleteAll(scraps);
+//
+//        // 사용자 관련 컨텐츠 삭제
+//        List<Content> contents = contentRepository.findByUserId(userId);
+//        for (Content content : contents) {
+//            // 컨텐츠 관련 코스 삭제
+//            List<Course> courses = courseRepository.findByContentId(content.getContentId());
+//            courseRepository.deleteAll(courses);
+//        }
+//        contentRepository.deleteAll(contents);
+//
+//        // 사용자 관련 팔로우 삭제
+//        followRepository.deleteByFollowerUserIdOrFolloweeUserId(userId, userId);
+//
+//        // 사용자 삭제
+//        userRepository.deleteById(userId);
+//    }
 
-    @Override
-    public void delete(Long userId) {
-        userDao.delete(userId);
-    }
 
-    @Override
-    public List<Object> saveUserPhoto(UserPhotoRequestDto userPhotoRequestDto, List<MultipartFile> files) throws Exception {
-        String email = userPhotoRequestDto.getEmail();
-        String userPlatform = checkUserPlatform(email);
-        List<Object> userPhotos = new ArrayList<>();
-
-        switch (userPlatform) {
-            case "LOCAL":
-                User user = userDao.findByEmail(email);
-                for (MultipartFile file : files) {
-                    UserPhoto userPhoto = userFileHandler.parseFileInfo(file, user);
-                    userPhotoDao.saveUserPhoto(userPhoto);
-                    userPhoto.addUser(user);
-                    userPhotos.add(userPhoto);
-                }
-                break;
-            case "GOOGLE":
-            case "KAKAO":
-            case "NAVER":
-                Optional<OAuthUser> oAuthUserOpt = oAuthUserRepository.findByEmail(email);
-                if (!oAuthUserOpt.isPresent()) {
-                    throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
-                }
-
-                OAuthUser oAuthUser = oAuthUserOpt.get();
-                for (MultipartFile file : files) {
-                    OAuthUserPhoto oAuthUserPhoto = userFileHandler.parseOAuthFileInfo(file, oAuthUser);
-                    oAuthUser.setOAuthUserPhoto(oAuthUserPhoto);
-                    oAuthUserRepository.save(oAuthUser);
-                    userPhotos.add(oAuthUserPhoto);
-                }
-                break;
-            default:
-                throw new BusinessLogicException(ExceptionCode.INVALID_PLATFORM);
-        }
-        return userPhotos;
-    }
 
     @Override
     public List<UserPhoto> findUserPhoto(Long userId) {
@@ -172,69 +158,41 @@ public class UserServiceImpl implements UserService {
         return userPhotoDao.findUserPhotosByUser(user);
     }
 
-    @Override
-    public List<UserPhoto> findUserPhoto(String email) {
-        User user = userDao.findByEmail(email);
-        return userPhotoDao.findUserPhotosByUser(user);
-    }
 
-    @Override
-    public void userPhotoDelete(UserPhoto userPhoto) {
-        userPhotoDao.userPhotoDelete(userPhoto);
-    }
 
     @Override
     public User getLoginMember() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (authentication == null || authentication.getName() == null || authentication.getName().equals("anonymousUser")) {
-            throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
+        if (principal instanceof UserDetails) {
+            String email = ((UserDetails) principal).getUsername();
+            return userRepository.findByEmail(email)
+                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+        } else {
+            throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
         }
-
-        Optional<User> optionalUser = userRepository.findByEmail(authentication.getName());
-        return optionalUser.orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
     }
 
     @Override
-    public void sendPasswordResetEmail(String email) throws Exception {
-        // User user = userDao.findByEmail(email);
-        String token = UUID.randomUUID().toString();
-        redisUtil.setDataExpire(email, token, 60 * 30L);  // 30분 동안 유효
-        authEmailService.sendPasswordResetEmail(email, token);
-    }
-
-    @Override
-    public boolean resetPassword(String email, String newPassword) {
-        User user = userDao.findByEmail(email);
+    public boolean resetPassword(Long userId, String newPassword) {
+        User user = userDao.find(userId);
         user.setPassword(passwordEncoder.encode(newPassword));
         userDao.save(user);
-        redisUtil.deleteData(email);
+        redisUtil.deleteData(user.getEmail());
         return true;
     }
 
     @Override
-    public String checkUserPlatform(String email) {
-        Optional<User> localUser = userRepository.findByEmail(email);
-        Optional<OAuthUser> oauthUser = oAuthUserRepository.findByEmail(email);
-
-        if (localUser.isPresent()) {
-            return "LOCAL";
-        }
-
-        if (oauthUser.isPresent()) {
-            return oauthUser.get().getOAuthProvider().name();
-        }
-
-        throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
+    public String checkUserPlatform(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+        return user.getLoginType().name();
     }
 
     @Override
-    public boolean checkEmailExists(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    @Override
-    public boolean isEmailExists(String email) {
-        return userRepository.existsByEmail(email) || oAuthUserRepository.existsByEmail(email);
+    public Long getUserIdByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(User::getUserId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
     }
 }

@@ -1,6 +1,6 @@
 package com.min204.coseproject.auth.service;
 
-import com.min204.coseproject.auth.dto.AuthSigUpRequestDto;
+import com.min204.coseproject.auth.dto.req.AuthSigUpRequestDto;
 import com.min204.coseproject.jwt.TokenInfo;
 import com.min204.coseproject.user.dto.req.ReissueTokensRequestDto;
 import com.min204.coseproject.user.entity.User;

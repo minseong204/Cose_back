@@ -2,8 +2,6 @@ package com.min204.coseproject.user.handler;
 
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
-import com.min204.coseproject.oauth.entity.OAuthUser;
-import com.min204.coseproject.oauth.entity.OAuthUserPhoto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -23,11 +21,7 @@ public class UserFileHandler {
         return saveFile(multipartFile, "user_images");
     }
 
-    public OAuthUserPhoto parseOAuthFileInfo(MultipartFile multipartFile, OAuthUser oAuthUser) throws Exception {
-        return saveFile(multipartFile, "oauth_user_images");
-    }
-
-    private <T> T saveFile(MultipartFile multipartFile, String baseDir) throws Exception {
+    private UserPhoto saveFile(MultipartFile multipartFile, String baseDir) throws Exception {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -42,42 +36,27 @@ public class UserFileHandler {
             boolean wasSuccessful = file.mkdirs();
 
             if (!wasSuccessful) {
-                throw new Exception("Failed to create directory");
+                throw new Exception("디렉터리를 생성하지 못했습니다.");
             }
         }
 
         String contentType = multipartFile.getContentType();
 
         if (ObjectUtils.isEmpty(contentType) || (!contentType.contains("image/jpeg") && !contentType.contains("image/png"))) {
-            throw new Exception("Invalid image format. Only JPEG and PNG are supported.");
+            throw new Exception("잘못된 이미지 형식입니다. JPEG 및 PNG 만 지원됩니다.");
         }
 
         String newFileName = multipartFile.getOriginalFilename();
 
-        if (baseDir.equals("user_images")) {
-            UserPhoto photo = UserPhoto.builder()
-                    .originFileName(multipartFile.getOriginalFilename())
-                    .filePath(path + File.separator + newFileName)
-                    .fileSize(multipartFile.getSize())
-                    .build();
+        UserPhoto photo = UserPhoto.builder()
+                .originFileName(multipartFile.getOriginalFilename())
+                .filePath(path + File.separator + newFileName)
+                .fileSize(multipartFile.getSize())
+                .build();
 
-            Path path1 = Paths.get(absolutePath + path + File.separator + newFileName).toAbsolutePath();
-            multipartFile.transferTo(path1);
+        Path path1 = Paths.get(absolutePath + path + File.separator + newFileName).toAbsolutePath();
+        multipartFile.transferTo(path1);
 
-            return (T) photo;
-        } else if (baseDir.equals("oauth_user_images")) {
-            OAuthUserPhoto photo = OAuthUserPhoto.builder()
-                    .originFileName(multipartFile.getOriginalFilename())
-                    .filePath(path + File.separator + newFileName)
-                    .fileSize(multipartFile.getSize())
-                    .build();
-
-            Path path1 = Paths.get(absolutePath + path + File.separator + newFileName).toAbsolutePath();
-            multipartFile.transferTo(path1);
-
-            return (T) photo;
-        } else {
-            throw new Exception("Invalid base directory");
-        }
+        return photo;
     }
 }

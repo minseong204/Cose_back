@@ -19,7 +19,7 @@ public class ExceptionControllerAdvice {
         response.put("data", Map.of(
                 "email", ex.getEmail(),
                 "isAvailable", false,
-                "Type", ex.getType()
+                "Type", ex.getLoginType()
         ));
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
