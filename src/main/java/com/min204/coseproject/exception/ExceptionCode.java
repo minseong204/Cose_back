@@ -10,12 +10,15 @@ public enum ExceptionCode {
     COURSE_NOT_FOUND(404, "Course Not Found"),
     COURSE_PLACE_NOT_FOUND(404, "Course Place Not Found"),
     HEART_NOT_FOUND(404, "Heart Not Found"),
+    FOLLOW_NOT_FOUND(404, "Follow Not Found"),
+    SCRAP_NOT_FOUND(404, "Scrap Not Found"),
 
     USER_EXISTS(409, "User Exists"),
     CONTENT_EXISTS(409, "Content Exists"),
     COMMENT_EXISTS(409, "Comment Exists"),
     COURSE_EXISTS(409, "Course Exists"),
     COURSE_PLACE_EXISTS(409, "Course Place Exists"),
+    SCRAP_ALREADY_EXISTS(409, "Scrap already exists"),
 
     CANNOT_CHANGE_USER(403, "User Can Not Change"),
     CANNOT_CHANGE_CONTENT(403, "Content Can Not Change"),

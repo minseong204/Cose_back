@@ -1,9 +1,7 @@
+
 package com.min204.coseproject.content.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.min204.coseproject.audit.Auditable;
-import com.min204.coseproject.comment.entity.Comment;
-import com.min204.coseproject.heart.entity.Heart;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.user.entity.User;
 import javax.persistence.*;
@@ -31,25 +29,13 @@ public class Content extends Auditable {
     @Column(nullable = false)
     private int viewCount = 0;
 
-    @Column(nullable = false)
-    private int heartCount = 0;
-
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Course> courses = new ArrayList<>();
-
-    @OneToMany(mappedBy = "content", cascade = CascadeType.REMOVE)
-    private List<Heart> hearts = new ArrayList<>();
-
-    @OneToMany(mappedBy = "content", cascade = CascadeType.REMOVE)
-    private List<Comment> comments = new ArrayList<>();
 
     @ManyToOne(optional = true, fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinColumn(name = "user_id")
     private User user;
 
-    public void addHeart(Heart heart) {
-        hearts.add(heart);
-    }
 
     public void addCourse(Course course) {
         courses.add(course);

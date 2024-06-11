@@ -1,20 +1,11 @@
 package com.min204.coseproject.user.controller;
 
-import com.min204.coseproject.auth.dto.AuthEmailRequestDto;
 import com.min204.coseproject.auth.service.AuthEmailService;
 import com.min204.coseproject.constant.SuccessCode;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.ExceptionCode;
-import com.min204.coseproject.oauth.entity.OAuthUser;
-import com.min204.coseproject.oauth.entity.OAuthUserPhoto;
-import com.min204.coseproject.oauth.repository.OAuthUserRepository;
-import com.min204.coseproject.redis.RedisUtil;
 import com.min204.coseproject.response.CoseResponse;
 import com.min204.coseproject.response.ResBodyModel;
-import com.min204.coseproject.response.SingleResponseDto;
-import com.min204.coseproject.user.dto.req.PasswordResetDto;
-import com.min204.coseproject.user.dto.req.PasswordResetRequestDto;
-import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
 import com.min204.coseproject.user.dto.res.ResponseUserInfoDto;
 import com.min204.coseproject.user.dto.res.UserProfileResponseDto;
@@ -26,11 +17,11 @@ import com.min204.coseproject.user.mapper.UserPhotoMapper;
 import com.min204.coseproject.user.repository.UserRepository;
 import com.min204.coseproject.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,29 +38,30 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final UserPhotoMapper userPhotoMapper;
-    private final AuthEmailService authEmailService;
     private final UserRepository userRepository;
-    private final OAuthUserRepository oAuthUserRepository;
     private final UserFileHandler userFileHandler;
+    private final AuthEmailService authEmailService;
 
-    /*
-     * 단일 회원 로그인 조회
-     * */
-    @GetMapping("/login-view/{email}")
-    public ResponseEntity<ResBodyModel> loginViewLoad(@PathVariable String email) throws IOException {
-        User user = userService.find(email);
-        List<UserPhoto> userPhoto = userService.findUserPhoto(email);
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            return Long.valueOf(authentication.getName());
+        }
+        throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
+    }
+
+    @GetMapping("/login-view/{userId}")
+    public ResponseEntity<ResBodyModel> loginViewLoad(@PathVariable Long userId) throws IOException {
+        User user = userService.find(userId);
+        List<UserPhoto> userPhoto = userService.findUserPhoto(userId);
         List<Map<String, Object>> userPhotoMapping = userPhotoMapper.toResponse(userPhoto);
         ResponseUserInfoDto responseUserInfoDto = userMapper.toResponse(user, userPhotoMapping);
         return CoseResponse.toResponse(SuccessCode.SUCCESS, responseUserInfoDto);
     }
 
-    /*
-     * 회원 단일 조회
-     * */
-    @GetMapping("/{email}")
-    public ResponseEntity<ResBodyModel> load(@PathVariable String email) {
-        User user = userService.find(email);
+    @GetMapping("/{userId}")
+    public ResponseEntity<ResBodyModel> load(@PathVariable Long userId) {
+        User user = userService.find(userId);
         ResponseUserInfoDto responseUserInfoDto = ResponseUserInfoDto.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
@@ -77,9 +69,6 @@ public class UserController {
         return CoseResponse.toResponse(SuccessCode.SUCCESS, responseUserInfoDto);
     }
 
-    /*
-     * 회원 전체 조회
-     * */
     @GetMapping
     public ResponseEntity<ResBodyModel> loadAll() {
         List<User> users = userService.findAll();
@@ -87,42 +76,25 @@ public class UserController {
         return CoseResponse.toResponse(SuccessCode.SUCCESS, responseUserInfoDtos);
     }
 
-    /*
-     * 회원 정보 수정
-     * */
     @PatchMapping
     public ResponseEntity<ResBodyModel> update(@RequestBody UserRequestDto requestUserSignUpDto) {
-        User user = userService.update(requestUserSignUpDto);
-        ResponseUserInfoDto responseUserInfoDto = userMapper.toResponse(user);
+        Optional<User> user = userService.update(requestUserSignUpDto);
+        ResponseUserInfoDto responseUserInfoDto = userMapper.toResponse(user.orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND)));
         return CoseResponse.toResponse(SuccessCode.SUCCESS, responseUserInfoDto);
     }
 
-    /*
-     * 회원 정보 삭제 (이메일)
-     * */
-    @DeleteMapping("/{email}")
-    public ResponseEntity<ResBodyModel> delete(@PathVariable String email) {
-        userService.delete(email);
-        return CoseResponse.toResponse(SuccessCode.SUCCESS);
-    }
+//    @DeleteMapping("/{userId}")
+//    public ResponseEntity<ResBodyModel> delete(@PathVariable Long userId) {
+//        userService.delete(userId);
+//        return CoseResponse.toResponse(SuccessCode.SUCCESS);
+//    }
 
-    /*
-     * 회원 정보 삭제 (PK)
-     * */
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<ResBodyModel> delete(@PathVariable Long userId) {
-        userService.delete(userId);
-        return CoseResponse.toResponse(SuccessCode.SUCCESS);
-    }
-
-    /*
-     * 비밀번호 재설정 이메일 요청
-     * */
     @PostMapping("/password-reset-request")
     public ResponseEntity<ResBodyModel> requestPasswordReset(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         try {
-            String platform = userService.checkUserPlatform(email);
+            Long userId = userService.getUserIdByEmail(email);
+            String platform = userService.checkUserPlatform(userId);
             if (!platform.equals("LOCAL")) {
                 return CoseResponse.toErrorResponse("회원님은 " + platform + "에서 회원가입하셨습니다.", HttpStatus.BAD_REQUEST.value());
             }
@@ -133,12 +105,8 @@ public class UserController {
         }
     }
 
-    /*
-     * 이메일 변경 인증번호 비교
-     * */
     @PostMapping("/verify-code")
     public ResponseEntity<ResBodyModel> verifyCode(@RequestBody Map<String, String> request) {
-
         String email = request.get("email");
         String code = request.get("code");
 
@@ -149,27 +117,22 @@ public class UserController {
         }
     }
 
-    /*
-     * 비밀번호 재설정
-     * */
     @PostMapping("/reset-password")
     public ResponseEntity<ResBodyModel> resetPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String newPassword = request.get("newPassword");
-        if (userService.resetPassword(email, newPassword)) {
+        Long userId = userService.getUserIdByEmail(email);
+        if (userService.resetPassword(userId, newPassword)) {
             return CoseResponse.toResponse("비밀번호 변경 성공", SuccessCode.SUCCESS);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
-    /*
-     * 사용자 별 프로필 정보 반환
-     */
     @GetMapping("/profile")
-    public ResponseEntity<ResBodyModel> getUserProfile(@RequestParam String email) {
+    public ResponseEntity<ResBodyModel> getUserProfile(@RequestParam Long userId) {
         try {
-            UserProfileResponseDto userProfile = userService.getUserProfile(email);
+            UserProfileResponseDto userProfile = userService.getUserProfile(userId);
             return CoseResponse.toResponse(SuccessCode.SUCCESS, userProfile);
         } catch (BusinessLogicException e) {
             return CoseResponse.toErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND.value());
@@ -179,34 +142,17 @@ public class UserController {
         }
     }
 
-    /*
-     * 사용자 프로필 사진 변경
-     * */
     @PostMapping("/profile-photo")
-    public ResponseEntity<ResBodyModel> updateProfilePhoto(@RequestParam("email") String email,
+    public ResponseEntity<ResBodyModel> updateProfilePhoto(@RequestParam("userId") Long userId,
                                                            @RequestParam("file") MultipartFile file) {
         try {
-            Optional<User> localUserOpt = userRepository.findByEmail(email);
-            Optional<OAuthUser> oAuthUserOpt = oAuthUserRepository.findByEmail(email);
+            User localUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
 
-            if (localUserOpt.isPresent()) {
-                User localUser = localUserOpt.get();
-                UserPhoto userPhoto = userFileHandler.parseFileInfo(file, localUser);
-                localUser.setUserPhoto(userPhoto);
-                userRepository.save(localUser);
-                return CoseResponse.toResponse(SuccessCode.SUCCESS, "로컬 사용자의 프로필 사진이 업데이트되었습니다.");
-            }
-
-            if (oAuthUserOpt.isPresent()) {
-                OAuthUser oAuthUser = oAuthUserOpt.get();
-                OAuthUserPhoto oAuthUserPhoto = userFileHandler.parseOAuthFileInfo(file, oAuthUser);
-                oAuthUser.setOAuthUserPhoto(oAuthUserPhoto);
-                oAuthUserRepository.save(oAuthUser);
-                return CoseResponse.toResponse(SuccessCode.SUCCESS, "OAuth 사용자의 프로필 사진이 업데이트되었습니다.");
-            }
-
-            return CoseResponse.toErrorResponse( "회원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND.value());
-
+            UserPhoto userPhoto = userFileHandler.parseFileInfo(file, localUser);
+            localUser.setUserPhoto(userPhoto);
+            userRepository.save(localUser);
+            return CoseResponse.toResponse(SuccessCode.SUCCESS, "로컬 사용자의 프로필 사진이 업데이트되었습니다.");
         } catch (Exception e) {
             log.error("Error updating profile photo: ", e);
             return CoseResponse.toErrorResponse("프로필 사진을 업데이트하는 중에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());

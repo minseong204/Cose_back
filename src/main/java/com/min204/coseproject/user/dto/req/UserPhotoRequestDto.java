@@ -8,5 +8,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserPhotoRequestDto {
-    private String email;
+    private Long userId;
 }

@@ -1,6 +1,5 @@
 package com.min204.coseproject.content.service;
 
-import com.min204.coseproject.comment.repository.CommentRepository;
 import com.min204.coseproject.content.dto.ContentAllResponseDto;
 import com.min204.coseproject.content.dto.ContentPostDto;
 import com.min204.coseproject.content.entity.Content;
@@ -30,7 +29,6 @@ import java.util.Optional;
 public class ContentService {
     private final ContentRepository contentRepository;
     private final CourseRepository courseRepository;
-    private final CommentRepository commentRepository;
     private final ContentMapper contentMapper;
     private final UserService userService;
 
@@ -86,7 +84,7 @@ public class ContentService {
 
     @Transactional(readOnly = true)
     public ResponseEntity<SingleResponseDto<ContentAllResponseDto>> detail(Content content) {
-        ContentAllResponseDto response = contentMapper.contentToContentAllResponse(content, commentRepository, courseRepository);
+        ContentAllResponseDto response = contentMapper.contentToContentAllResponse(content, courseRepository);
         return new ResponseEntity<>(new SingleResponseDto<>(response), HttpStatus.OK);
     }
 

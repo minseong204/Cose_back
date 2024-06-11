@@ -1,46 +1,66 @@
 package com.min204.coseproject.follow.controller;
 
+import com.min204.coseproject.follow.dto.FollowDto;
 import com.min204.coseproject.follow.service.FollowService;
-import com.min204.coseproject.user.dto.res.ResponseFollowerDto;
-import com.min204.coseproject.user.dto.res.ResponseFolloweeDto;
-import com.min204.coseproject.user.entity.User;
-import com.min204.coseproject.user.mapper.FollowMapper;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
+import com.min204.coseproject.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping("/follow")
 public class FollowController {
 
     private final FollowService followService;
-    private final FollowMapper followMapper;
+    private final UserService userService;
 
-    @PostMapping("/{followerId}/follow/{followeeId}")
-    public ResponseEntity<String> followUser(@PathVariable Long followerId, @PathVariable Long followeeId) {
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            String userEmail = authentication.getName();
+            Long userId = userService.getUserIdByEmail(userEmail);
+            return userId;
+        }
+        throw new IllegalStateException("User is not authenticated");
+    }
+
+    @PostMapping("/{followeeId}")
+    public ResponseEntity<Void> followUser(@PathVariable Long followeeId) {
+        Long followerId = getCurrentUserId();
+        log.info("*************************followerId: {}", followerId);
         followService.followUser(followerId, followeeId);
-        return new ResponseEntity<>("Follow successful", HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{followerId}/unfollow/{followeeId}")
-    public ResponseEntity<String> unfollowUser(@PathVariable Long followerId, @PathVariable Long followeeId) {
+    @DeleteMapping("/{followeeId}")
+    public ResponseEntity<Void> unfollowUser(@PathVariable Long followeeId) {
+        Long followerId = getCurrentUserId();
         followService.unfollowUser(followerId, followeeId);
-        return new ResponseEntity<>("Unfollow successful", HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{userId}/followees")
-    public ResponseEntity<List<ResponseFolloweeDto>> getFollowees(@PathVariable Long userId) {
-        List<User> followees = followService.getFollowees(userId);
-        return new ResponseEntity<>(followMapper.toFolloweeDtoList(followees), HttpStatus.OK);
+    @GetMapping("/followees")
+    public ResponseEntity<List<FollowDto>> getFollowees() {
+        Long userId = getCurrentUserId();
+        log.info("Fetching followees for userId: {}", userId);
+        List<FollowDto> followees = followService.getFollowees(userId);
+        log.info("Found followees: {}", followees.size());
+        return ResponseEntity.ok(followees);
     }
 
-    @GetMapping("/{userId}/followers")
-    public ResponseEntity<List<ResponseFollowerDto>> getFollowers(@PathVariable Long userId) {
-        List<User> followers = followService.getFollowers(userId);
-        return new ResponseEntity<>(followMapper.toFollowerDtoList(followers), HttpStatus.OK);
+    @GetMapping("/followers")
+    public ResponseEntity<List<FollowDto>> getFollowers() {
+        Long userId = getCurrentUserId();
+        log.info("Fetching followers for userId: {}", userId);
+        List<FollowDto> followers = followService.getFollowers(userId);
+        log.info("Found followers: {}", followers.size());
+        return ResponseEntity.ok(followers);
     }
 }

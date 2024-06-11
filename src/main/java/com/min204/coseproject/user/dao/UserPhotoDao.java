@@ -1,14 +1,13 @@
 package com.min204.coseproject.user.dao;
 
-import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
+import com.min204.coseproject.user.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-public interface UserPhotoDao {
-
-    UserPhoto saveUserPhoto(UserPhoto userPhoto);
+@Repository
+public interface UserPhotoDao extends JpaRepository<UserPhoto, Long> {
     List<UserPhoto> findUserPhotosByUser(User user);
-
-    void userPhotoDelete(UserPhoto userPhoto);
 }

@@ -1,6 +1,5 @@
 package com.min204.coseproject.content.dto;
 
-import com.min204.coseproject.comment.dto.CommentResponseDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -33,6 +32,5 @@ public class ContentAllResponseDto {
 
     private String image;
 
-    private List<CommentResponseDto> comments;
     private List<CourseResponseDto> courses;
 }
