@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,13 +61,13 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_LOGIN));
 
         if (passwordEncoder.matches(password, user.getPassword())) {
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
-            Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword(), user.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            TokenInfo tokenInfo = jwtTokenProvider.generateToken(authenticationToken);
 
-            TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
             user.setRefreshToken(tokenInfo.getRefreshToken());
             userRepository.save(user);
-            return Optional.ofNullable(tokenInfo);
+            return Optional.of(tokenInfo);
         } else {
             throw new BusinessLogicException(ExceptionCode.USER_NOT_LOGIN);
         }
