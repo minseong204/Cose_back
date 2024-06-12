@@ -1,7 +1,10 @@
 package com.min204.coseproject.follow.controller;
 
+import com.min204.coseproject.constant.SuccessCode;
 import com.min204.coseproject.follow.dto.FollowDto;
 import com.min204.coseproject.follow.service.FollowService;
+import com.min204.coseproject.response.CoseResponse;
+import com.min204.coseproject.response.ResBodyModel;
 import com.min204.coseproject.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,18 +35,18 @@ public class FollowController {
     }
 
     @PostMapping("/{followeeId}")
-    public ResponseEntity<Void> followUser(@PathVariable Long followeeId) {
+    public ResponseEntity<ResBodyModel> followUser(@PathVariable Long followeeId) {
         Long followerId = getCurrentUserId();
         log.info("*************************followerId: {}", followerId);
         followService.followUser(followerId, followeeId);
-        return ResponseEntity.ok().build();
+        return CoseResponse.toResponse(SuccessCode.SUCCESS);
     }
 
     @DeleteMapping("/{followeeId}")
-    public ResponseEntity<Void> unfollowUser(@PathVariable Long followeeId) {
+    public ResponseEntity<ResBodyModel> unfollowUser(@PathVariable Long followeeId) {
         Long followerId = getCurrentUserId();
         followService.unfollowUser(followerId, followeeId);
-        return ResponseEntity.ok().build();
+        return CoseResponse.toResponse(SuccessCode.SUCCESS);
     }
 
     @GetMapping("/followees")
