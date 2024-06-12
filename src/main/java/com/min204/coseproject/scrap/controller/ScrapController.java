@@ -1,5 +1,8 @@
 package com.min204.coseproject.scrap.controller;
 
+import com.min204.coseproject.constant.SuccessCode;
+import com.min204.coseproject.response.CoseResponse;
+import com.min204.coseproject.response.ResBodyModel;
 import com.min204.coseproject.scrap.dto.ScrapDto;
 import com.min204.coseproject.scrap.service.ScrapService;
 import com.min204.coseproject.response.SingleResponseDto;
@@ -17,15 +20,15 @@ public class ScrapController {
     private final ScrapService scrapService;
 
     @PostMapping("/{contentId}")
-    public ResponseEntity<Void> scrapContent(@PathVariable Long contentId) {
+    public ResponseEntity<ResBodyModel> scrapContent(@PathVariable Long contentId) {
         scrapService.scrapContent(contentId);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return CoseResponse.toResponse(SuccessCode.SUCCESS);
     }
 
     @DeleteMapping("/{contentId}")
-    public ResponseEntity<Void> unscriptContent(@PathVariable Long contentId) {
+    public ResponseEntity<ResBodyModel> unscrapContent(@PathVariable Long contentId) {
         scrapService.unscriptContent(contentId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return CoseResponse.toResponse(SuccessCode.SUCCESS);
     }
 
     @GetMapping
