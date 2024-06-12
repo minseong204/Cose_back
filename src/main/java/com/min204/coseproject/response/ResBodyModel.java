@@ -1,6 +1,5 @@
 package com.min204.coseproject.response;
 
-
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,19 +8,16 @@ import lombok.Getter;
  */
 @Getter
 public class ResBodyModel {
+    private final String status;
     private final String code;
-    private final String description;
-    private final String dateTime;
+    private final String message;
     private final Object data;
+
     @Builder
-    public ResBodyModel(String code, String description, String dateTime, Object data) {
+    public ResBodyModel(String status, String code, String message, Object data) {
+        this.status = status;
         this.code = code;
-        this.description = description;
-        this.dateTime = dateTime;
+        this.message = message;
         this.data = data;
     }
-
-
 }
-
-

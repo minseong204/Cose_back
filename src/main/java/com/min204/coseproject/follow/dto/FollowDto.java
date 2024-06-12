@@ -1,15 +1,12 @@
 package com.min204.coseproject.follow.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
 public class FollowDto {
-    private Long followerId;
-    private String followerEmail;
-    private String followerNickname;
-    private Long followeeId;
-    private String followeeEmail;
-    private String followeeNickname;
+    private Long userId;
+    private String email;
+    private String nickname;
 }

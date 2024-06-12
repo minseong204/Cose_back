@@ -8,10 +8,10 @@ import com.min204.coseproject.exception.EmailAlreadyExistsException;
 import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.jwt.JwtTokenProvider;
 import com.min204.coseproject.jwt.TokenInfo;
-import com.min204.coseproject.user.repository.UserRepository;
 import com.min204.coseproject.user.dto.req.ReissueTokensRequestDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
+import com.min204.coseproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,7 +36,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public User save(AuthSigUpRequestDto authSigUpRequestDto) {
+    @Transactional
+    public void save(AuthSigUpRequestDto authSigUpRequestDto) {
         String encode = passwordEncoder.encode(authSigUpRequestDto.getPassword());
 
         User user = User.builder()
@@ -44,17 +45,17 @@ public class AuthServiceImpl implements AuthService {
                 .password(encode)
                 .nickname(authSigUpRequestDto.getNickname())
                 .roles(new HashSet<>(Collections.singletonList(UserRoles.USER.getRole())))
-                .loginType(LoginType.LOCAL) // 로그인 타입 설정
+                .loginType(LoginType.LOCAL)
                 .build();
 
         UserPhoto defaultPhoto = new UserPhoto("defaultImage", "classpath:img/defaultImage.svg", 0L);
         user.setUserPhoto(defaultPhoto);
 
         existsByEmail(user.getEmail());
-
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
+    @Override
     @Transactional
     public Optional<TokenInfo> login(String email, String password) {
         User user = userRepository.findByEmail(email)
