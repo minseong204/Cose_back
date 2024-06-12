@@ -61,24 +61,8 @@ public class User implements UserDetails {
     private UserPhoto userPhoto;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
     private Set<Scrap> scraps = new HashSet<>();
-
-    @ManyToMany
-    @JoinTable(
-            name = "user_followers",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "follower_id")
-    )
-    private Set<User> followers;
-
-    @ManyToMany
-    @JoinTable(
-            name = "user_following",
-            joinColumns = @JoinColumn(name = "follower_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> following;
 
     public void setUserPhoto(UserPhoto userPhoto) {
         this.userPhoto = userPhoto;
