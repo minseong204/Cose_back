@@ -8,6 +8,7 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class TokenInfo {
+    private Long userId;
     private String grantType;
     private String accessToken;
     private String refreshToken;
