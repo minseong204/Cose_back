@@ -1,13 +1,13 @@
 package com.min204.coseproject.exception;
 
+import com.min204.coseproject.constant.ErrorCode;
 import lombok.Getter;
 
 public class BusinessLogicException extends RuntimeException{
     @Getter
-    private ExceptionCode exceptionCode;
+    private ErrorCode errorCode;
 
-    public BusinessLogicException(ExceptionCode exceptionCode) {
-        super(exceptionCode.getMessage());
-        this.exceptionCode = exceptionCode;
+    public BusinessLogicException(ErrorCode errorCode) {
+        this.errorCode = errorCode;
     }
 }
