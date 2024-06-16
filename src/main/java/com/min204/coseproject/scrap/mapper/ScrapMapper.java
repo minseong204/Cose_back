@@ -20,7 +20,6 @@ public interface ScrapMapper {
         return ContentDto.builder()
                 .contentId(content.getContentId())
                 .title(content.getTitle())
-                .viewCount(content.getViewCount())
                 .build();
     }
 }

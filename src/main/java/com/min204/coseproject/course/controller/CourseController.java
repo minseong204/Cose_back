@@ -2,67 +2,57 @@ package com.min204.coseproject.course.controller;
 
 import com.min204.coseproject.course.dto.CoursePostDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
-import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.course.mapper.CourseMapper;
-import com.min204.coseproject.course.service.CourseService;
-import com.min204.coseproject.response.MultiResponseDto;
-import com.min204.coseproject.response.SingleResponseDto;
-import org.springframework.data.domain.Page;
+import com.min204.coseproject.course.service.CourseServiceImpl;
+import com.min204.coseproject.response.CoseResponse;
+import com.min204.coseproject.constant.SuccessCode;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Validated
 @RestController
 @RequestMapping("/courses")
+@RequiredArgsConstructor
 public class CourseController {
-    private final CourseService courseService;
+    private final CourseServiceImpl courseService;
     private final CourseMapper courseMapper;
 
-    public CourseController(CourseService courseService, CourseMapper courseMapper) {
-        this.courseService = courseService;
-        this.courseMapper = courseMapper;
-    }
-
-    /*
-     * 코스 생성
-     * */
     @PostMapping
-    public ResponseEntity postCourse(@Valid @RequestBody CoursePostDto requestBody) {
-        Course course = courseService.createCourse(courseMapper.coursePostDtoToCourse(requestBody));
-        CourseResponseDto courseResponseDto = courseMapper.courseToCourseResponseDto(course);
-
-        return new ResponseEntity<>(new SingleResponseDto<>(courseResponseDto), HttpStatus.OK);
+    public ResponseEntity<?> postCourse(@Valid @RequestBody CoursePostDto requestBody) {
+        CourseResponseDto courseResponseDto = courseService.createCourse(requestBody);
+        return CoseResponse.toResponse(SuccessCode.COURSE_CREATED, courseResponseDto, HttpStatus.CREATED.value());
     }
 
     @PatchMapping("/{courseId}")
-    public ResponseEntity patchCourse(@Valid @RequestBody CoursePostDto requestBody,
-                                      @PathVariable("courseId") Long courseId) {
-        Course course = courseService.updateCourse(courseId, requestBody);
-        CourseResponseDto courseResponseDto = courseMapper.courseToCourseResponseDto(course);
-
-        return new ResponseEntity<>(new SingleResponseDto<>(courseResponseDto), HttpStatus.OK);
+    public ResponseEntity<?> patchCourse(@Valid @RequestBody CoursePostDto requestBody,
+                                         @PathVariable("courseId") Long courseId) {
+        CourseResponseDto courseResponseDto = courseService.updateCourse(courseId, requestBody);
+        return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, courseResponseDto, HttpStatus.RESET_CONTENT.value());
     }
 
     @GetMapping("/{courseId}")
-    public ResponseEntity getCourse(@PathVariable("courseId") Long courseId) {
+    public ResponseEntity<?> getCourse(@PathVariable("courseId") Long courseId) {
         CourseResponseDto courseResponseDto = courseService.findCourse(courseId);
-        return new ResponseEntity<>(new SingleResponseDto<>(courseResponseDto), HttpStatus.OK);
+        return CoseResponse.toResponse(SuccessCode.FETCH_SUCCESS, courseResponseDto, HttpStatus.PARTIAL_CONTENT.value());
     }
 
     @GetMapping
-    public ResponseEntity getCourses(@RequestParam("page") int page,
-                                     @RequestParam("size") int size) {
-        Page<Course> pageCourses = courseService.findCourses(page - 1, size);
-        return new ResponseEntity<>(new MultiResponseDto<>(courseMapper.coursesToCourseResponseDtos(pageCourses.getContent()), pageCourses), HttpStatus.OK);
+    public ResponseEntity<?> getCourses(@RequestParam("page") int page,
+                                        @RequestParam("size") int size) {
+        List<CourseResponseDto> courses = courseService.findCourses(page, size);
+        return CoseResponse.toResponse(SuccessCode.FETCH_SUCCESS, courses, HttpStatus.PARTIAL_CONTENT.value());
     }
 
     @DeleteMapping("/{courseId}")
-    public ResponseEntity deleteCourse(@PathVariable("courseId") Long courseId) {
+    public ResponseEntity<?> deleteCourse(@PathVariable("courseId") Long courseId) {
         courseService.deleteCourse(courseId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return CoseResponse.toResponse(SuccessCode.COURSE_DELETED,  courseId.toString(), HttpStatus.OK.value());
     }
 }

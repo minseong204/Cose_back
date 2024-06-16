@@ -1,7 +1,8 @@
 package com.min204.coseproject.response;
 
-import com.min204.coseproject.exception.ExceptionCode;
 import javax.validation.ConstraintViolation;
+
+import com.min204.coseproject.constant.ErrorCode;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -12,13 +13,13 @@ import java.util.stream.Collectors;
 
 @Getter
 public class ErrorResponse {
-    private int status;
+    private String code;
     private String message;
     private List<FieldError> fieldErrors;
     private List<ConstraintViolationError> violationErrors;
 
-    private ErrorResponse(int status, String message) {
-        this.status = status;
+    private ErrorResponse(String code, String message) {
+        this.code = code;
         this.message = message;
     }
 
@@ -36,16 +37,16 @@ public class ErrorResponse {
         return new ErrorResponse(null, ConstraintViolationError.of(violations));
     }
 
-    public static ErrorResponse of(ExceptionCode exceptionCode) {
-        return new ErrorResponse(exceptionCode.getStatus(), exceptionCode.getMessage());
+    public static ErrorResponse of(ErrorCode errorCode) {
+        return new ErrorResponse(errorCode.getCode(), errorCode.getMessage());
     }
 
     public static ErrorResponse of(HttpStatus httpStatus) {
-        return new ErrorResponse(httpStatus.value(), httpStatus.getReasonPhrase());
+        return new ErrorResponse(httpStatus.toString(), httpStatus.getReasonPhrase());
     }
 
     public static ErrorResponse of(HttpStatus httpStatus, String message) {
-        return new ErrorResponse(httpStatus.value(), message);
+        return new ErrorResponse(httpStatus.toString(), message);
     }
 
     @Getter

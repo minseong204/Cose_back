@@ -29,7 +29,7 @@ public class ExceptionControllerAdvice {
     public ResponseEntity<Map<String, Object>> handleBusinessLogicException(BusinessLogicException exception) {
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("success", false);
-        errorDetails.put("message", exception.getExceptionCode().getMessage());
+        errorDetails.put("message", exception.getErrorCode().getMessage());
 
         return ResponseEntity.badRequest().body(errorDetails);
     }

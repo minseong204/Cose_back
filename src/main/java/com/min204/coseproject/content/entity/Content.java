@@ -20,14 +20,10 @@ import java.util.List;
 public class Content extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "content_id")
     private Long contentId;
 
-    @Column(nullable = false)
     private String title;
-
-    @Column(nullable = false)
-    private int viewCount = 0;
+    private String description;
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Course> courses = new ArrayList<>();

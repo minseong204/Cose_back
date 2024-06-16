@@ -11,7 +11,13 @@ public enum SuccessCode implements BodyCode {
     EMAIL_AVAILABLE("200 OK", "이메일 사용 가능"),
     FOLLOW_SUCCESS("200 OK", "팔로우 성공"),
     UNFOLLOW_SUCCESS("200 OK", "언팔로우 성공"),
-    FETCH_SUCCESS("206 PARTIAL_CONTENT", "정보 조회 성공")
+    FETCH_SUCCESS("206 PARTIAL_CONTENT", "정보 조회 완료"),
+    COURSE_CREATED("201 CREATED", "코스 생성 완료"),
+    COURSE_UPDATED("205 RESET_CONTENT", "코스 수정 완료"),
+    COURSE_DELETED("200 OK", "코스 삭제 완료"),
+    CONTENT_CREATED("201 CREATED", "게시물 생성 완료"),
+    CONTENT_UPDATED("205 RESET_CONTENT", "게시물 수정 완료"),
+    CONTENT_DELETED("200 OK", "게시물 삭제 완료")
     ;
     private final String code;
     private final String message;
