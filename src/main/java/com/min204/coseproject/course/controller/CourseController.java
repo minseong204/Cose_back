@@ -34,7 +34,7 @@ public class CourseController {
     public ResponseEntity<?> patchCourse(@Valid @RequestBody CoursePostDto requestBody,
                                          @PathVariable("courseId") Long courseId) {
         CourseResponseDto courseResponseDto = courseService.updateCourse(courseId, requestBody);
-        return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, courseResponseDto, HttpStatus.RESET_CONTENT.value());
+        return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, courseResponseDto, HttpStatus.OK.value());
     }
 
     @GetMapping("/{courseId}")
