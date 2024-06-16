@@ -23,34 +23,50 @@ repositories {
 }
 
 dependencies {
+    // 기본 적인 라이브러리.
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    // implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
-    implementation 'org.springframework.data:spring-data-redis'
-    implementation 'io.lettuce:lettuce-core:6.2.1.RELEASE'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    /*
+    * 어노테이션 기반 코드 자동완성
+    **/
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    runtimeOnly 'com.h2database:h2'
+
+    // 소셜로그인을 위한 OAuth2.0
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // @RequestBody, @RequestParam, @PathVariable 에 전달되는 데이터에 대한 유효성 검사를 위해 사용
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    /*
+    * 데이터베이스 설정 (MySQL, Redis)
+    **/
     runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'org.springframework.data:spring-data-redis'
+    implementation 'io.lettuce:lettuce-core:6.2.1.RELEASE'      // 동기 비동기 데이터 액세스를 제공하는 netty 기반 완전 비차단 Redis 클라이언트
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    /*
+    * 객체 매핑 Mapper
+    **/
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
 
+    // RFC 7159 JSON 을 사용하기 위한 라이브러리
     implementation 'com.google.code.gson:gson'
 
+    // 인증번호 메일을 보내기 위해서 사용.
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'ognl:ognl'
+    implementation 'ognl:ognl'      // ognl 표현식 ${...} 과 같은 컨텍스트에 포함된 변수 맵
 
+    // 회원 인증 및 인가를 위한 JWT 라이브러리
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('bootBuildImage') {

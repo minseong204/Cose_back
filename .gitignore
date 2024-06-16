@@ -43,3 +43,5 @@ application-secret.yml
 
 user_images
 oauth_user_images
+
+트러블슈팅.md
