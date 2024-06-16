@@ -1,25 +1,16 @@
 package com.min204.coseproject.user.service;
 
-import com.min204.coseproject.content.entity.Content;
+import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.content.repository.ContentRepository;
-import com.min204.coseproject.course.entity.Course;
-import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
-import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.follow.repository.FollowRepository;
-import com.min204.coseproject.follow.service.FollowService;
 import com.min204.coseproject.redis.RedisUtil;
-import com.min204.coseproject.scrap.entity.Scrap;
-import com.min204.coseproject.scrap.repository.ScrapRepository;
 import com.min204.coseproject.user.dao.UserDao;
 import com.min204.coseproject.user.dao.UserPhotoDao;
-import com.min204.coseproject.user.dto.req.UserPhotoRequestDto;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
 import com.min204.coseproject.user.dto.res.UserProfileResponseDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.entity.UserPhoto;
-import com.min204.coseproject.user.handler.UserFileHandler;
-import com.min204.coseproject.user.repository.UserPhotoRepository;
 import com.min204.coseproject.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +20,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +46,7 @@ public class UserServiceImpl implements UserService {
     private void validateCurrentUser(Long userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.getName().equals(userId.toString())) {
-            throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
+            throw new BusinessLogicException(ErrorCode.UNAUTHORIZED);
         }
     }
 
@@ -68,7 +58,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileResponseDto getUserProfile(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
         return buildUserProfileResponse(user);
     }
 
@@ -124,7 +114,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> update(UserRequestDto userRequestDto) {
         User user = userDao.findById(userRequestDto.getUserId())
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
         user.changeInfo(userRequestDto);
         return Optional.of(user);
     }
@@ -167,9 +157,9 @@ public class UserServiceImpl implements UserService {
         if (principal instanceof UserDetails) {
             String email = ((UserDetails) principal).getUsername();
             return userRepository.findByEmail(email)
-                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
         } else {
-            throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
+            throw new BusinessLogicException(ErrorCode.USER_NOT_FOUND);
         }
     }
 
@@ -185,7 +175,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String checkUserPlatform(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
         return user.getLoginType().name();
     }
 
@@ -193,6 +183,6 @@ public class UserServiceImpl implements UserService {
     public Long getUserIdByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(User::getUserId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
     }
 }

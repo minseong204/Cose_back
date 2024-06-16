@@ -1,11 +1,11 @@
 package com.min204.coseproject.auth.service;
 
 import com.min204.coseproject.auth.dto.req.AuthSigUpRequestDto;
+import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.constant.LoginType;
 import com.min204.coseproject.constant.UserRoles;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.exception.EmailAlreadyExistsException;
-import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.jwt.JwtTokenProvider;
 import com.min204.coseproject.jwt.TokenInfo;
 import com.min204.coseproject.user.dto.req.ReissueTokensRequestDto;
@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public Optional<TokenInfo> login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_LOGIN));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.FAILED_LOGIN));
 
         if (passwordEncoder.matches(password, user.getPassword())) {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword(), user.getAuthorities());
@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
             userRepository.save(user);
             return Optional.of(tokenInfo);
         } else {
-            throw new BusinessLogicException(ExceptionCode.USER_NOT_LOGIN);
+            throw new BusinessLogicException(ErrorCode.FAILED_LOGIN);
         }
     }
 
@@ -79,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenInfo reissueTokens(String refreshToken, ReissueTokensRequestDto reissueTokensRequestDto) {
         log.info("Reissuing tokens for email: {}", reissueTokensRequestDto.getEmail());
         User user = userRepository.findByEmail(reissueTokensRequestDto.getEmail())
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
         log.info("User found: {}", user.getEmail());
 
         if (jwtTokenProvider.validateToken(refreshToken) && refreshToken.equals(user.getRefreshToken())) {
@@ -90,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
             return tokenInfo;
         }
 
-        throw new BusinessLogicException(ExceptionCode.INVALID_ACCESS_TOKEN);
+        throw new BusinessLogicException(ErrorCode.UNAUTHORIZED);
     }
 
     @Override

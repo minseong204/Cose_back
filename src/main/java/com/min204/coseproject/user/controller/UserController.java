@@ -1,9 +1,9 @@
 package com.min204.coseproject.user.controller;
 
 import com.min204.coseproject.auth.service.AuthEmailService;
+import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.constant.SuccessCode;
 import com.min204.coseproject.exception.BusinessLogicException;
-import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.response.CoseResponse;
 import com.min204.coseproject.response.ResBodyModel;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
@@ -47,7 +47,7 @@ public class UserController {
         if (authentication != null && authentication.isAuthenticated()) {
             return Long.valueOf(authentication.getName());
         }
-        throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED);
+        throw new BusinessLogicException(ErrorCode.UNAUTHORIZED);
     }
 
     @GetMapping("/login-view/{userId}")
@@ -79,7 +79,7 @@ public class UserController {
     @PatchMapping
     public ResponseEntity<ResBodyModel> update(@RequestBody UserRequestDto requestUserSignUpDto) {
         Optional<User> user = userService.update(requestUserSignUpDto);
-        ResponseUserInfoDto responseUserInfoDto = userMapper.toResponse(user.orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND)));
+        ResponseUserInfoDto responseUserInfoDto = userMapper.toResponse(user.orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND)));
         return CoseResponse.toResponse(SuccessCode.SUCCESS, responseUserInfoDto);
     }
 
@@ -147,7 +147,7 @@ public class UserController {
                                                            @RequestParam("file") MultipartFile file) {
         try {
             User localUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
 
             UserPhoto userPhoto = userFileHandler.parseFileInfo(file, localUser);
             localUser.setUserPhoto(userPhoto);
