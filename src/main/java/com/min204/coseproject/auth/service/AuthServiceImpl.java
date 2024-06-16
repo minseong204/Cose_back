@@ -66,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             TokenInfo tokenInfo = jwtTokenProvider.generateToken(authenticationToken);
 
+            tokenInfo.setUserId(user.getUserId());
             user.setRefreshToken(tokenInfo.getRefreshToken());
             userRepository.save(user);
             return Optional.of(tokenInfo);

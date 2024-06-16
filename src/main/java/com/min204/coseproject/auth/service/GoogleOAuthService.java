@@ -44,15 +44,11 @@ public class GoogleOAuthService {
                 if (user.getLoginType() != null && user.getLoginType() != oAuthInfoResponse.getLoginType()) {
                     throw new EmailAlreadyExistsException(email, user.getLoginType());
                 }
-                TokenInfo tokenInfo = loginUser(user);
-                log.info("Generated Tokens: accessToken={}, refreshToken={}", tokenInfo.getAccessToken(), tokenInfo.getRefreshToken());
-                return tokenInfo;
+                return loginUser(user);
             }
 
             Long userId = findOrCreateUser(oAuthInfoResponse);
-            TokenInfo tokenInfo = generateTokenForUser(userId);
-            log.info("Generated Tokens: accessToken={}, refreshToken={}", tokenInfo.getAccessToken(), tokenInfo.getRefreshToken());
-            return tokenInfo;
+            return generateTokenForUser(userId);
         } catch (EmailAlreadyExistsException e) {
             throw e;
         }
@@ -92,7 +88,9 @@ public class GoogleOAuthService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return jwtTokenProvider.generateToken(authentication);
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        tokenInfo.setUserId(user.getUserId());
+        return tokenInfo;
     }
 
     public TokenInfo loginUser(User user) {
@@ -100,6 +98,7 @@ public class GoogleOAuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        tokenInfo.setUserId(user.getUserId()); // Set the userId
         user.setRefreshToken(tokenInfo.getRefreshToken());
         userRepository.save(user);
         return tokenInfo;
