@@ -1,8 +1,8 @@
 package com.min204.coseproject.follow.service;
 
+import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.constant.SuccessCode;
 import com.min204.coseproject.exception.BusinessLogicException;
-import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.follow.dto.FollowDto;
 import com.min204.coseproject.follow.entity.Follow;
 import com.min204.coseproject.follow.repository.FollowRepository;
@@ -35,7 +35,7 @@ public class FollowServiceImpl implements FollowService {
         User followee = userService.find(followeeId);
 
         if (followRepository.existsByFollowerAndFollowee(follower, followee)) {
-            throw new BusinessLogicException(ExceptionCode.ALREADY_FOLLOWING);
+            throw new BusinessLogicException(ErrorCode.ALREADY_FOLLOWING);
         }
         Follow follow = Follow.builder()
                 .follower(follower)
@@ -55,7 +55,7 @@ public class FollowServiceImpl implements FollowService {
         User followee = userService.find(followeeId);
 
         Follow follow = followRepository.findByFollowerAndFollowee(follower, followee)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.FOLLOW_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.FOLLOW_NOT_FOUND));
 
         followRepository.delete(follow);
 
