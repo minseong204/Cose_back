@@ -16,15 +16,16 @@ import java.util.stream.Collectors;
 public interface CourseMapper {
     default Course coursePostDtoToCourse(CoursePostDto requestBody) {
         Course course = new Course();
+        course.setCourseName(requestBody.getCourseName());
         course.setDescription(requestBody.getDescription());
 
         Set<Place> places = requestBody.getPlaces().stream()
                 .map(placeDto -> {
                     Place place = placeDtoToPlace(placeDto);
-                    place.setCourse(course); // 각 Place에 Course 설정
+                    place.setCourse(course);
                     return place;
                 })
-                .collect(Collectors.toSet()); // Collect to Set
+                .collect(Collectors.toSet());
         course.setPlaces(places);
 
         return course;
@@ -37,8 +38,9 @@ public interface CourseMapper {
 
         return CourseResponseDto.builder()
                 .courseId(course.getCourseId())
+                .courseName(course.getCourseName())
                 .description(course.getDescription())
-                .places(new ArrayList<>(placeDtos)) // Convert Set to List
+                .places(new ArrayList<>(placeDtos))
                 .build();
     }
 
@@ -48,7 +50,6 @@ public interface CourseMapper {
         place.setX(placeDto.getX());
         place.setY(placeDto.getY());
         place.setAddress(placeDto.getAddress());
-        place.setDescription(placeDto.getDescription());
         return place;
     }
 
@@ -58,7 +59,6 @@ public interface CourseMapper {
                 .x(place.getX())
                 .y(place.getY())
                 .address(place.getAddress())
-                .description(place.getDescription())
                 .build();
     }
 

@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CourseResponseDto {
     private Long courseId;
+    private String courseName;
     private String description;
     private List<PlaceDto> places;
 }

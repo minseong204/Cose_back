@@ -34,6 +34,9 @@ public class Course extends Auditable {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Place> places = new HashSet<>();
 
+    @Column(name = "course_name", nullable = false)
+    private String courseName;
+
     @Column(nullable = false)
     private String description;
 

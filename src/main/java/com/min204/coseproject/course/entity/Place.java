@@ -34,7 +34,4 @@ public class Place extends Auditable {
 
     @Column(nullable = false)
     private String address;
-
-    @Column(nullable = false)
-    private String description;
 }

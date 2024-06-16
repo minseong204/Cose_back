@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 @Builder
 public class CoursePostDto {
+    private String courseName;
     private String description;
     private List<PlaceDto> places;
 }
