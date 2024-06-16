@@ -1,6 +1,7 @@
 package com.min204.coseproject.scrap.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.min204.coseproject.audit.Auditable;
 import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.user.entity.User;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @Entity
-public class Scrap {
+public class Scrap extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "scrap_id")
