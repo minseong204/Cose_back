@@ -10,5 +10,4 @@ public class PlaceDto {
     private double x;
     private double y;
     private String address;
-    private String description;
 }
