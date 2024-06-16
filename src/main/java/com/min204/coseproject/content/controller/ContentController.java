@@ -1,106 +1,52 @@
 package com.min204.coseproject.content.controller;
 
-import com.min204.coseproject.content.dto.ContentPatchDto;
-import com.min204.coseproject.content.dto.ContentPostDto;
-import com.min204.coseproject.content.dto.ContentResponseDto;
-import com.min204.coseproject.content.entity.Content;
-import com.min204.coseproject.content.mapper.ContentMapper;
+import com.min204.coseproject.content.dto.*;
 import com.min204.coseproject.content.service.ContentService;
-import com.min204.coseproject.course.service.CourseService;
-import com.min204.coseproject.response.MultiResponseDto;
-import com.min204.coseproject.response.SingleResponseDto;
-import org.springframework.data.domain.Page;
+import com.min204.coseproject.response.CoseResponse;
+import com.min204.coseproject.response.ResBodyModel;
+import com.min204.coseproject.constant.SuccessCode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
-@Validated
 @RestController
 @RequestMapping("/contents")
+@RequiredArgsConstructor
 public class ContentController {
     private final ContentService contentService;
-    private final ContentMapper contentMapper;
-    private final CourseService courseService;
 
-    public ContentController(ContentService contentService, ContentMapper contentMapper, CourseService courseService) {
-        this.contentService = contentService;
-        this.contentMapper = contentMapper;
-        this.courseService = courseService;
-    }
-
-    /*
-     * 게시글 생성
-     * */
     @PostMapping
-    public ResponseEntity<SingleResponseDto<ContentResponseDto>> postContent(@Valid @RequestBody ContentPostDto requestBody) {
-        Content content = contentService.createContent(requestBody);
-        ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
-
-        return new ResponseEntity<>(new SingleResponseDto<>(contentResponse), HttpStatus.OK);
+    public ResponseEntity<ResBodyModel> createContent(@Valid @RequestBody ContentPostDto contentPostDto) {
+        contentService.createContent(contentPostDto);
+        return CoseResponse.toResponse(SuccessCode.CONTENT_CREATED, contentPostDto, HttpStatus.CREATED.value());
     }
 
-    /*
-     * 게시글과 코스 연결
-     * */
-    @PostMapping("/{contentId}/course/{courseId}")
-    public ResponseEntity<Void> linkCourse(@PathVariable("contentId") Long contentId,
-                                           @PathVariable("courseId") Long courseId) {
-        contentService.linkCourse(contentId, courseId);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    /*
-     * 게시글 단일 조회
-     * */
-    @GetMapping("/{contentId}")
-    public ResponseEntity<SingleResponseDto<ContentResponseDto>> getContent(@PathVariable("contentId") Long contentId) {
-        Content content = contentService.findContent(contentId);
-        int viewCount = content.getViewCount();
-        content.setViewCount(++viewCount);
-        contentService.updateViewCount(content);
-
-        ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
-        return new ResponseEntity<>(new SingleResponseDto<>(contentResponse), HttpStatus.OK);
-    }
-
-    /*
-     * 게시글 전체 조회
-     * */
-    @GetMapping
-    public ResponseEntity<MultiResponseDto<ContentResponseDto>> getContents(@RequestParam("page") int page,
-                                                                            @RequestParam("size") int size) {
-        Page<Content> pageContents = contentService.findContents(page - 1, size);
-        List<Content> contents = pageContents.getContent();
-
-        contents.forEach(content -> content.setCourses(courseService.findCoursesByContentId(content.getContentId())));
-        List<ContentResponseDto> contentResponses = contentMapper.contentsToContentResponse(contents);
-
-        return new ResponseEntity<>(new MultiResponseDto<>(contentResponses, pageContents), HttpStatus.OK);
-    }
-
-    /*
-     * 게시글 수정
-     * */
     @PatchMapping("/{contentId}")
-    public ResponseEntity<SingleResponseDto<ContentResponseDto>> patchContent(@RequestBody ContentPatchDto requestBody,
-                                                                              @PathVariable("contentId") Long contentId) {
-        requestBody.updateId(contentId);
-        Content content = contentService.updateContent(contentMapper.contentPatchDtoToContent(requestBody));
-        ContentResponseDto contentResponse = contentMapper.contentToContentResponse(content);
-
-        return new ResponseEntity<>(new SingleResponseDto<>(contentResponse), HttpStatus.OK);
+    public ResponseEntity<ResBodyModel> updateContent(@PathVariable Long contentId,
+                                                      @Valid @RequestBody ContentPatchDto contentPatchDto) {
+        contentService.updateContent(contentId, contentPatchDto);
+        return CoseResponse.toResponse(SuccessCode.CONTENT_UPDATED, contentPatchDto, HttpStatus.RESET_CONTENT.value());
     }
 
-    /*
-     * 게시글 삭제
-     * */
+    @GetMapping("/{contentId}")
+    public ResponseEntity<ResBodyModel> getContent(@PathVariable Long contentId) {
+        ContentResponseDto contentResponseDto = contentService.getContent(contentId);
+        return CoseResponse.toResponse(SuccessCode.FETCH_SUCCESS, contentResponseDto, HttpStatus.PARTIAL_CONTENT.value());
+    }
+
+    @GetMapping
+    public ResponseEntity<ResBodyModel> getAllContents() {
+        List<ContentAllResponseDto> contents = contentService.getAllContents();
+        return CoseResponse.toResponse(SuccessCode.FETCH_SUCCESS, contents, HttpStatus.PARTIAL_CONTENT.value());
+    }
+
     @DeleteMapping("/{contentId}")
-    public ResponseEntity<Void> deleteContent(@PathVariable("contentId") Long contentId) {
+    public ResponseEntity<ResBodyModel> deleteContent(@PathVariable Long contentId) {
         contentService.deleteContent(contentId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return CoseResponse.toResponse(SuccessCode.CONTENT_DELETED, contentId.toString(), HttpStatus.OK.value());
     }
 }

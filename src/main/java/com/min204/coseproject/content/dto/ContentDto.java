@@ -8,5 +8,4 @@ import lombok.Getter;
 public class ContentDto {
     private Long contentId;
     private String title;
-    private int viewCount;
 }

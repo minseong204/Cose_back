@@ -1,5 +1,6 @@
 package com.min204.coseproject.course.service;
 
+import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.course.dto.CoursePostDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
 import com.min204.coseproject.course.entity.Course;
@@ -7,7 +8,6 @@ import com.min204.coseproject.course.entity.Place;
 import com.min204.coseproject.course.mapper.CourseMapper;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
-import com.min204.coseproject.exception.ExceptionCode;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +24,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
-public class CourseService {
+public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
     private final UserService userService;
@@ -34,24 +33,21 @@ public class CourseService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-
+    @Override
     @Transactional
-    public Course createCourse(Course course) {
+    public CourseResponseDto createCourse(CoursePostDto coursePostDto) {
         User currentUser = userService.getLoginMember();
+        Course course = courseMapper.coursePostDtoToCourse(coursePostDto);
         course.setUser(currentUser);
-        return courseRepository.save(course);
+        Course savedCourse = courseRepository.save(course);
+        return courseMapper.courseToCourseResponseDto(savedCourse);
     }
 
-    public Course createCourse(CoursePostDto courseDto) {
-        Course course = courseMapper.coursePostDtoToCourse(courseDto);
-        return courseRepository.save(course);
-    }
-
+    @Override
     @Transactional
-    public Course updateCourse(Long courseId, CoursePostDto courseDto) {
+    public CourseResponseDto updateCourse(Long courseId, CoursePostDto coursePostDto) {
         Course findCourse = findVerifiedCourse(courseId);
-
-        findCourse.setDescription(courseDto.getDescription());
+        findCourse.setDescription(coursePostDto.getDescription());
 
         // 기존 장소를 명시적으로 제거
         for (Place place : findCourse.getPlaces()) {
@@ -61,40 +57,41 @@ public class CourseService {
         entityManager.flush();
 
         // 새로운 장소 추가
-        Set<Place> updatedPlaces = courseDto.getPlaces().stream()
+        Set<Place> updatedPlaces = coursePostDto.getPlaces().stream()
                 .map(placeDto -> {
                     Place place = courseMapper.placeDtoToPlace(placeDto);
                     place.setCourse(findCourse);
                     return place;
                 })
-                .collect(Collectors.toSet()); // Collect to Set
+                .collect(Collectors.toSet());
 
         findCourse.setPlaces(updatedPlaces);
+        Course updatedCourse = courseRepository.save(findCourse);
 
-        return courseRepository.save(findCourse);
+        return courseMapper.courseToCourseResponseDto(updatedCourse);
     }
 
+    @Override
     public CourseResponseDto findCourse(Long courseId) {
         Course course = courseRepository.findCourseWithPlaces(courseId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ErrorCode.COURSE_NOT_FOUND));
         return courseMapper.courseToCourseResponseDto(course);
     }
 
-    public Page<Course> findCourses(int page, int size) {
-        return courseRepository.findAll(PageRequest.of(page, size, Sort.by("courseId").descending()));
+    @Override
+    public List<CourseResponseDto> findCourses(int page, int size) {
+        Page<Course> pageCourses = courseRepository.findAll(PageRequest.of(page - 1, size, Sort.by("courseId").descending()));
+        return courseMapper.coursesToCourseResponseDtos(pageCourses.getContent());
     }
 
+    @Override
     public void deleteCourse(Long courseId) {
         Course findCourse = findVerifiedCourse(courseId);
         courseRepository.delete(findCourse);
     }
 
-    public List<Course> findCoursesByContentId(Long contentId) {
-        return courseRepository.findAllByContent_ContentId(contentId);
-    }
-
-    public Course findVerifiedCourse(Long courseId) {
+    private Course findVerifiedCourse(Long courseId) {
         return courseRepository.findById(courseId).orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.COURSE_NOT_FOUND));
+                new BusinessLogicException(ErrorCode.COURSE_NOT_FOUND));
     }
 }
