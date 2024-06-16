@@ -46,15 +46,12 @@ public class OAuthService {
                 if (user.getLoginType() != null && user.getLoginType() != oAuthInfoResponse.getLoginType()) {
                     throw new EmailAlreadyExistsException(email, user.getLoginType());
                 }
-                TokenInfo tokenInfo = loginUser(user);
-                log.info("Generated Tokens: accessToken={}, refreshToken={}", tokenInfo.getAccessToken(), tokenInfo.getRefreshToken());
-                return tokenInfo;
+                return loginUser(user);
             }
 
             Long userId = createUser(oAuthInfoResponse);
-            TokenInfo tokenInfo = generateTokenForUser(userId);
-            log.info("Generated Tokens: accessToken={}, refreshToken={}", tokenInfo.getAccessToken(), tokenInfo.getRefreshToken());
-            return tokenInfo;
+            User newUser = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found after creation"));
+            return loginUser(newUser);
         } catch (EmailAlreadyExistsException e) {
             throw e;
         }
@@ -75,21 +72,12 @@ public class OAuthService {
         return userRepository.save(user).getUserId();
     }
 
-    private TokenInfo generateTokenForUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, user.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        return jwtTokenProvider.generateToken(authentication);
-    }
-
     public TokenInfo loginUser(User user) {
         Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        tokenInfo.setUserId(user.getUserId());
         user.setRefreshToken(tokenInfo.getRefreshToken());
         userRepository.save(user);
         return tokenInfo;
