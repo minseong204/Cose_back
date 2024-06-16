@@ -32,6 +32,9 @@ public class SecurityConfig {
                 // 누구나 접근 가능
                 .antMatchers("/auth/**").permitAll()
                 .antMatchers("/public/**").permitAll()
+                .antMatchers("/users/password-reset-request").permitAll()
+                .antMatchers("/users/verify-code").permitAll()
+                .antMatchers("/users//reset-password").permitAll()
                 // 특정 역할(ADMIN)을 가진 사용자만 접근 가능
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 // follow 관련 경로는 인증된 사용자만 접근 가능
