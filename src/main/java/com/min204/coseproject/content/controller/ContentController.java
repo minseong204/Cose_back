@@ -29,7 +29,7 @@ public class ContentController {
     public ResponseEntity<ResBodyModel> updateContent(@PathVariable Long contentId,
                                                       @Valid @RequestBody ContentPatchDto contentPatchDto) {
         contentService.updateContent(contentId, contentPatchDto);
-        return CoseResponse.toResponse(SuccessCode.CONTENT_UPDATED, contentPatchDto, HttpStatus.RESET_CONTENT.value());
+        return CoseResponse.toResponse(SuccessCode.CONTENT_UPDATED, contentPatchDto, HttpStatus.OK.value());
     }
 
     @GetMapping("/{contentId}")
