@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,13 +46,15 @@ public class OAuthService {
                 if (user.getLoginType() != null && user.getLoginType() != oAuthInfoResponse.getLoginType()) {
                     throw new EmailAlreadyExistsException(email, user.getLoginType());
                 }
-                return loginUser(user);
-            } else {
-                // 사용자가 존재하지 않으면 새로운 사용자 생성
-                Long userId = createUser(oAuthInfoResponse);
-                User newUser = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found after creation"));
-                return loginUser(newUser);
+                TokenInfo tokenInfo = loginUser(user);
+                log.info("Generated Tokens: accessToken={}, refreshToken={}", tokenInfo.getAccessToken(), tokenInfo.getRefreshToken());
+                return tokenInfo;
             }
+
+            Long userId = createUser(oAuthInfoResponse);
+            TokenInfo tokenInfo = generateTokenForUser(userId);
+            log.info("Generated Tokens: accessToken={}, refreshToken={}", tokenInfo.getAccessToken(), tokenInfo.getRefreshToken());
+            return tokenInfo;
         } catch (EmailAlreadyExistsException e) {
             throw e;
         }
@@ -72,13 +75,23 @@ public class OAuthService {
         return userRepository.save(user).getUserId();
     }
 
+    private TokenInfo generateTokenForUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, user.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return jwtTokenProvider.generateToken(authentication);
+    }
+
     public TokenInfo loginUser(User user) {
-        String email = user.getEmail();
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, "");
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-        TokenInfo authTokens = jwtTokenProvider.generateToken(authentication);
-        user.setRefreshToken(authTokens.getRefreshToken());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, user.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
+        user.setRefreshToken(tokenInfo.getRefreshToken());
         userRepository.save(user);
-        return authTokens;
+        return tokenInfo;
     }
 }
