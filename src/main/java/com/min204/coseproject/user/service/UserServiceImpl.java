@@ -2,6 +2,7 @@ package com.min204.coseproject.user.service;
 
 import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.content.repository.ContentRepository;
+import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.follow.repository.FollowRepository;
 import com.min204.coseproject.redis.RedisUtil;
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final ContentRepository contentRepository;
     private final FollowRepository followRepository;
+    private final CourseRepository courseRepository;
 
 
     private static final String DEFAULT_IMAGE_PATH = "../defaultImage.svg";
@@ -66,6 +68,7 @@ public class UserServiceImpl implements UserService {
         int postCount = contentRepository.countByUser(user);
         int followerCount = followRepository.countByFollowee(user);
         int followingCount = followRepository.countByFollower(user);
+        int courseCount = courseRepository.countByUser(user);
 
         List<UserProfileResponseDto.ContentDto> posts = contentRepository.findAllByUser(user).stream()
                 .map(content -> UserProfileResponseDto.ContentDto.builder()
@@ -92,7 +95,13 @@ public class UserServiceImpl implements UserService {
                         .build())
                 .collect(Collectors.toList());
 
-        String profileImagePath = user.getUserPhoto() != null ? user.getUserPhoto().getFilePath() : "../defaultImage.svg";
+        List<UserProfileResponseDto.CourseDto> courses = courseRepository.findAllByUser(user).stream()
+                .map(course -> UserProfileResponseDto.CourseDto.builder()
+                        .courseId(course.getCourseId())
+                        .build())
+                .collect(Collectors.toList());
+
+        String profileImagePath = user.getUserPhoto() != null ? user.getUserPhoto().getFilePath() : DEFAULT_IMAGE_PATH;
 
         return UserProfileResponseDto.builder()
                 .nickname(user.getNickname())
@@ -103,6 +112,8 @@ public class UserServiceImpl implements UserService {
                 .followingCount(followingCount)
                 .following(following)
                 .profileImagePath(profileImagePath)
+                .courseCount(courseCount)
+                .courses(courses)
                 .build();
     }
 
