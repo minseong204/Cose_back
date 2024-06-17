@@ -6,8 +6,10 @@ import lombok.Getter;
 @Getter
 @Builder
 public class PlaceDto {
-    private String name;
+    private String address;
+    private String placeName;
+    private String placeUrl;
+    private String categoryGroupName;
     private double x;
     private double y;
-    private String address;
 }

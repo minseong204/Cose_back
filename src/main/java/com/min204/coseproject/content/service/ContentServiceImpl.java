@@ -6,6 +6,8 @@ import com.min204.coseproject.content.entity.Content;
 import com.min204.coseproject.content.mapper.ContentMapper;
 import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
+import com.min204.coseproject.user.entity.User;
+import com.min204.coseproject.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,13 @@ import java.util.stream.Collectors;
 public class ContentServiceImpl implements ContentService {
     private final ContentRepository contentRepository;
     private final ContentMapper contentMapper;
+    private final UserService userService;
 
     @Override
     public void createContent(ContentPostDto contentPostDto) {
+        User currentUser = userService.getLoginMember();
         Content content = contentMapper.contentPostDtoToContent(contentPostDto);
+        content.setUser(currentUser);
         contentRepository.save(content);
     }
 

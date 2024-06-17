@@ -1,11 +1,12 @@
 package com.min204.coseproject.user.dto.res;
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 
 import java.util.List;
 
-@Getter
+@Data
 @Builder
 public class UserProfileResponseDto {
     private String nickname;
@@ -16,21 +17,23 @@ public class UserProfileResponseDto {
     private int followingCount;
     private List<UserDto> following;
     private String profileImagePath;
+    private int courseCount;
+    private List<CourseDto> courses;
 
-    @Getter
+    @Data
     @Builder
     public static class ContentDto {
         private Long contentId;
         private List<CourseDto> courses;
     }
 
-    @Getter
+    @Data
     @Builder
     public static class CourseDto {
         private Long courseId;
     }
 
-    @Getter
+    @Data
     @Builder
     public static class UserDto {
         private Long userId;

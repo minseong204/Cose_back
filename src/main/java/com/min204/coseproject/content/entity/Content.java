@@ -24,6 +24,7 @@ public class Content extends Auditable {
 
     private String title;
     private String description;
+    private Long courseId;
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Course> courses = new ArrayList<>();

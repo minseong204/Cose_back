@@ -24,7 +24,16 @@ public class Place extends Auditable {
     private Course course;
 
     @Column(nullable = false)
-    private String name;
+    private String address;
+
+    @Column(nullable = false)
+    private String placeName;
+
+    @Column(nullable = false)
+    private String placeUrl;
+
+    @Column(nullable = false)
+    private String categoryGroupName;
 
     @Column(nullable = false)
     private double x;
@@ -32,6 +41,4 @@ public class Place extends Auditable {
     @Column(nullable = false)
     private double y;
 
-    @Column(nullable = false)
-    private String address;
 }
