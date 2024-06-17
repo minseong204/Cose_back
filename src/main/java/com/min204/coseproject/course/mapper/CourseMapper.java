@@ -46,19 +46,23 @@ public interface CourseMapper {
 
     default Place placeDtoToPlace(PlaceDto placeDto) {
         Place place = new Place();
-        place.setName(placeDto.getName());
+        place.setAddress(placeDto.getAddress());
+        place.setPlaceName(placeDto.getPlaceName());
+        place.setPlaceUrl(placeDto.getPlaceUrl());
+        place.setCategoryGroupName(placeDto.getCategoryGroupName());
         place.setX(placeDto.getX());
         place.setY(placeDto.getY());
-        place.setAddress(placeDto.getAddress());
         return place;
     }
 
     default PlaceDto placeToPlaceDto(Place place) {
         return PlaceDto.builder()
-                .name(place.getName())
+                .address(place.getAddress())
+                .placeName(place.getPlaceName())
+                .placeUrl(place.getPlaceUrl())
+                .categoryGroupName(place.getCategoryGroupName())
                 .x(place.getX())
                 .y(place.getY())
-                .address(place.getAddress())
                 .build();
     }
 
