@@ -2,6 +2,7 @@ package com.min204.coseproject.user.service;
 
 import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.content.repository.ContentRepository;
+import com.min204.coseproject.course.dto.PlaceDto;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.follow.repository.FollowRepository;
@@ -76,6 +77,17 @@ public class UserServiceImpl implements UserService {
                         .courses(content.getCourses().stream()
                                 .map(course -> UserProfileResponseDto.CourseDto.builder()
                                         .courseId(course.getCourseId())
+                                        .courseName(course.getCourseName())
+                                        .places(course.getPlaces().stream()
+                                                .map(place -> PlaceDto.builder()
+                                                        .placeName(place.getPlaceName())
+                                                        .address(place.getAddress())
+                                                        .placeUrl(place.getPlaceUrl())
+                                                        .categoryGroupName(place.getCategoryGroupName())
+                                                        .x(place.getX())
+                                                        .y(place.getY())
+                                                        .build())
+                                                .collect(Collectors.toList()))
                                         .build())
                                 .collect(Collectors.toList()))
                         .build())
@@ -98,6 +110,17 @@ public class UserServiceImpl implements UserService {
         List<UserProfileResponseDto.CourseDto> courses = courseRepository.findAllByUser(user).stream()
                 .map(course -> UserProfileResponseDto.CourseDto.builder()
                         .courseId(course.getCourseId())
+                        .courseName(course.getCourseName())
+                        .places(course.getPlaces().stream()
+                                .map(place -> PlaceDto.builder()
+                                        .placeName(place.getPlaceName())
+                                        .address(place.getAddress())
+                                        .placeUrl(place.getPlaceUrl())
+                                        .categoryGroupName(place.getCategoryGroupName())
+                                        .x(place.getX())
+                                        .y(place.getY())
+                                        .build())
+                                .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());
 
