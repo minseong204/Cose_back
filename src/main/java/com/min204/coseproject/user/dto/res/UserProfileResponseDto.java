@@ -1,5 +1,6 @@
 package com.min204.coseproject.user.dto.res;
 
+import com.min204.coseproject.course.dto.PlaceDto;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -31,6 +32,8 @@ public class UserProfileResponseDto {
     @Builder
     public static class CourseDto {
         private Long courseId;
+        private String courseName;
+        private List<PlaceDto> places;
     }
 
     @Data
