@@ -37,9 +37,6 @@ public class Course extends Auditable {
     @Column(name = "course_name", nullable = false)
     private String courseName;
 
-    @Column(nullable = false)
-    private String description;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

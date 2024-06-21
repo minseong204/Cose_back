@@ -47,7 +47,6 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public CourseResponseDto updateCourse(Long courseId, CoursePostDto coursePostDto) {
         Course findCourse = findVerifiedCourse(courseId);
-        findCourse.setDescription(coursePostDto.getDescription());
 
         // 기존 장소를 명시적으로 제거
         for (Place place : findCourse.getPlaces()) {

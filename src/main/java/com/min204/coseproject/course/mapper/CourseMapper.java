@@ -17,7 +17,6 @@ public interface CourseMapper {
     default Course coursePostDtoToCourse(CoursePostDto requestBody) {
         Course course = new Course();
         course.setCourseName(requestBody.getCourseName());
-        course.setDescription(requestBody.getDescription());
 
         Set<Place> places = requestBody.getPlaces().stream()
                 .map(placeDto -> {
@@ -39,7 +38,6 @@ public interface CourseMapper {
         return CourseResponseDto.builder()
                 .courseId(course.getCourseId())
                 .courseName(course.getCourseName())
-                .description(course.getDescription())
                 .places(new ArrayList<>(placeDtos))
                 .build();
     }

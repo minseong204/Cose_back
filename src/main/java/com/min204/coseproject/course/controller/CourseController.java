@@ -22,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseController {
     private final CourseServiceImpl courseService;
-    private final CourseMapper courseMapper;
 
     @PostMapping
     public ResponseEntity<?> postCourse(@Valid @RequestBody CoursePostDto requestBody) {
