@@ -12,4 +12,5 @@ public class PlaceDto {
     private String categoryGroupName;
     private double x;
     private double y;
+    private int placeOrder;
 }
