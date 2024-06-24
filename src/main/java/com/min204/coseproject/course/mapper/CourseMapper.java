@@ -7,9 +7,7 @@ import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.course.entity.Place;
 import org.mapstruct.Mapper;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -18,27 +16,28 @@ public interface CourseMapper {
         Course course = new Course();
         course.setCourseName(requestBody.getCourseName());
 
-        Set<Place> places = requestBody.getPlaces().stream()
-                .map(placeDto -> {
-                    Place place = placeDtoToPlace(placeDto);
-                    place.setCourse(course);
-                    return place;
-                })
-                .collect(Collectors.toSet());
+        List<Place> places = requestBody.getPlaces().stream()
+                .map(this::placeDtoToPlace)
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < places.size(); i++) {
+            places.get(i).setPlaceOrder(i + 1);
+            places.get(i).setCourse(course);
+        }
         course.setPlaces(places);
 
         return course;
     }
 
     default CourseResponseDto courseToCourseResponseDto(Course course) {
-        Set<PlaceDto> placeDtos = course.getPlaces().stream()
+        List<PlaceDto> placeDtos = course.getPlaces().stream()
                 .map(this::placeToPlaceDto)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         return CourseResponseDto.builder()
                 .courseId(course.getCourseId())
                 .courseName(course.getCourseName())
-                .places(new ArrayList<>(placeDtos))
+                .places(placeDtos)
                 .build();
     }
 
@@ -61,6 +60,7 @@ public interface CourseMapper {
                 .categoryGroupName(place.getCategoryGroupName())
                 .x(place.getX())
                 .y(place.getY())
+                .placeOrder(place.getPlaceOrder())
                 .build();
     }
 
