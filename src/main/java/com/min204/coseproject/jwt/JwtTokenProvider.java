@@ -1,19 +1,17 @@
 package com.min204.coseproject.jwt;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -22,35 +20,38 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
-    private final Key key;
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+    @Value("${jwt.token-validity-in-seconds}")
+    private long tokenValidityInMilliseconds;
+
+    @Value("${jwt.refresh-token-validity-in-seconds}")
+    private long refreshTokenValidityInMilliseconds;
+
+    @PostConstruct
+    protected void init() {
+        secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
     }
 
     public TokenInfo generateToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+        String authorities = authentication.getAuthorities().toString();
 
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 3600000); // 1시간 후 만료
+        long now = (new Date()).getTime();
+        Date accessTokenValidity = new Date(now + this.tokenValidityInMilliseconds * 1000);
+        Date refreshTokenValidity = new Date(now + this.refreshTokenValidityInMilliseconds * 1000);
 
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
-                .setIssuedAt(new Date())
-                .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .setExpiration(accessTokenValidity)
                 .compact();
 
         String refreshToken = Jwts.builder()
                 .setSubject(authentication.getName())
-                .claim("auth", authorities)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(now.getTime() + 604800000)) // 1주일 후 만료
-                .signWith(key, SignatureAlgorithm.HS512)
+                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .setExpiration(refreshTokenValidity)
                 .compact();
 
         return TokenInfo.builder()
@@ -61,13 +62,9 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
 
-        Collection<? extends GrantedAuthority> authorities =
+        Collection<SimpleGrantedAuthority> authorities =
                 Arrays.stream(claims.get("auth").toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
@@ -77,18 +74,12 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
-    public boolean validateToken(String authToken) {
+    public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
+            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT signature: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            log.info("Expired JWT token: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT token: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            log.info("JWT token compact of handler are invalid: {}", e.getMessage());
+        } catch (JwtException | IllegalArgumentException e) {
+            log.info("Invalid JWT token: {}", e.getMessage());
         }
         return false;
     }
