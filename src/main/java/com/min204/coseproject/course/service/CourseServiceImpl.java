@@ -20,7 +20,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,13 +55,17 @@ public class CourseServiceImpl implements CourseService {
         entityManager.flush();
 
         // 새로운 장소 추가
-        Set<Place> updatedPlaces = coursePostDto.getPlaces().stream()
+        List<Place> updatedPlaces = coursePostDto.getPlaces().stream()
                 .map(placeDto -> {
                     Place place = courseMapper.placeDtoToPlace(placeDto);
                     place.setCourse(findCourse);
                     return place;
                 })
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < updatedPlaces.size(); i++) {
+            updatedPlaces.get(i).setPlaceOrder(i + 1);
+        }
 
         findCourse.setPlaces(updatedPlaces);
         Course updatedCourse = courseRepository.save(findCourse);

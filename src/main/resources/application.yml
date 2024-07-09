@@ -3,3 +3,5 @@ spring:
     include:
       - oauth
       - secret
+  main:
+    allow-bean-definition-overriding: true

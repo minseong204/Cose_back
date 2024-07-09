@@ -2,10 +2,11 @@ package com.min204.coseproject.course.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.min204.coseproject.audit.Auditable;
-import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -41,4 +42,6 @@ public class Place extends Auditable {
     @Column(nullable = false)
     private double y;
 
+    @Column(nullable = false)
+    private int placeOrder;
 }
