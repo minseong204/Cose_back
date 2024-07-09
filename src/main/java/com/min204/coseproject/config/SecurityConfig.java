@@ -61,6 +61,8 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, "/scraps/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/scraps/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/scraps/**").authenticated()
+                // auth 인증된 사용자만 접근가능
+                .antMatchers(HttpMethod.POST, "/auth/reissue").authenticated()
                 // 나머지 모든 요청은 인증된 사용자만 접근 가능
                 .anyRequest().authenticated()
                 .and()

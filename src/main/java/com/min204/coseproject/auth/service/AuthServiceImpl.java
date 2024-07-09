@@ -62,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BusinessLogicException(ErrorCode.FAILED_LOGIN));
 
         if (passwordEncoder.matches(password, user.getPassword())) {
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword(), user.getAuthorities());
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), password, user.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             TokenInfo tokenInfo = jwtTokenProvider.generateToken(authenticationToken);
 
@@ -89,6 +89,8 @@ public class AuthServiceImpl implements AuthService {
             user.setRefreshToken(tokenInfo.getRefreshToken());
             userRepository.save(user);
             return tokenInfo;
+        } else {
+            log.warn("Invalid refresh token");
         }
 
         throw new BusinessLogicException(ErrorCode.UNAUTHORIZED);
@@ -103,9 +105,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private TokenInfo reissueTokensFromUser(User user) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, user.getAuthorities());
         return jwtTokenProvider.generateToken(authentication);
     }
 }
