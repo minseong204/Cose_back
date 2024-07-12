@@ -1,20 +1,18 @@
 package com.min204.coseproject.course.dto;
 
-import com.min204.coseproject.place.dto.PlaceDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Getter
 @Builder
 @AllArgsConstructor
-public class CourseResponseDto {
+public class CoursePreviewDto {
     private Long courseId;
     private String courseName;
-    private double x;
-    private double y;
-    private List<PlaceDto> places;
+    private LocalDateTime lastUpdated;
 
 }
+

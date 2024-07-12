@@ -2,9 +2,10 @@ package com.min204.coseproject.course.service;
 
 import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.course.dto.CoursePostDto;
+import com.min204.coseproject.course.dto.CoursePreviewDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
 import com.min204.coseproject.course.entity.Course;
-import com.min204.coseproject.course.entity.Place;
+import com.min204.coseproject.place.entity.Place;
 import com.min204.coseproject.course.mapper.CourseMapper;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
@@ -84,6 +85,12 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseResponseDto> findCourses(int page, int size) {
         Page<Course> pageCourses = courseRepository.findAll(PageRequest.of(page - 1, size, Sort.by("courseId").descending()));
         return courseMapper.coursesToCourseResponseDtos(pageCourses.getContent());
+    }
+
+    @Override
+    public List<CoursePreviewDto> findPreviewCourses(int page, int size) {
+        Page<Course> pageCourses = courseRepository.findAll(PageRequest.of(page - 1, size, Sort.by("courseId").descending()));
+        return courseMapper.coursesToCoursePreviewResponseDtos(pageCourses.getContent());
     }
 
     @Override

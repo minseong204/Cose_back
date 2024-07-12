@@ -7,6 +7,7 @@ import com.min204.coseproject.user.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.min204.coseproject.place.entity.Place;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -33,6 +34,12 @@ public class Course extends Auditable {
 
     @Column(name = "course_name", nullable = false)
     private String courseName;
+
+    @Column(nullable = false)
+    private double x;
+
+    @Column(nullable = false)
+    private double y;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
