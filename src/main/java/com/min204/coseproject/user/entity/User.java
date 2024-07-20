@@ -53,9 +53,6 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private LoginType loginType;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Content> contents;
-
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "photo_id")
     private UserPhoto userPhoto;
