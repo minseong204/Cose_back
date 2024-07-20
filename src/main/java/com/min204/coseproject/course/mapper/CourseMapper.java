@@ -7,6 +7,8 @@ import com.min204.coseproject.place.dto.PlaceDto;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.place.entity.Place;
 
+import com.min204.coseproject.user.dto.res.UserProfileResponseDto;
+import com.min204.coseproject.user.entity.User;
 import org.mapstruct.Mapper;
 
 import java.time.LocalDateTime;
@@ -97,6 +99,13 @@ public interface CourseMapper {
                 .x(place.getX())
                 .y(place.getY())
                 .placeOrder(place.getPlaceOrder())
+                .build();
+    }
+
+    default UserProfileResponseDto userToCourseUserResponseDto(User user) {
+        return UserProfileResponseDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname())
                 .build();
     }
 }

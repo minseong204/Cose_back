@@ -5,6 +5,8 @@ import com.min204.coseproject.course.dto.CoursePostDto;
 import com.min204.coseproject.course.dto.CoursePreviewDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
 import com.min204.coseproject.course.entity.Course;
+import com.min204.coseproject.course.entity.CourseUser;
+import com.min204.coseproject.course.repository.CourseUserRepository;
 import com.min204.coseproject.place.entity.Place;
 import com.min204.coseproject.course.mapper.CourseMapper;
 import com.min204.coseproject.course.repository.CourseRepository;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
+    private final CourseUserRepository courseUserRepository;
     private final CourseMapper courseMapper;
     private final UserService userService;
 
@@ -36,10 +39,19 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public CourseResponseDto createCourse(CoursePostDto coursePostDto) {
+        // 코스 생성
         User currentUser = userService.getLoginMember();
         Course course = courseMapper.coursePostDtoToCourse(coursePostDto);
         course.setUser(currentUser);
         Course savedCourse = courseRepository.save(course);
+
+        // 코스 생성자를 CourseUserMapped에 추가
+        CourseUser creatorMapping = new CourseUser();
+        creatorMapping.setCourse(savedCourse);
+        creatorMapping.setUser(currentUser);
+        creatorMapping.setEditPermission(CourseUser.EditPermission.ADMIN); // 생성자에게 ADMIN 권한 부여
+        courseUserRepository.save(creatorMapping);
+
         return courseMapper.courseToCourseResponseDto(savedCourse);
     }
 
