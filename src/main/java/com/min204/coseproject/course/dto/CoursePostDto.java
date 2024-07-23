@@ -14,4 +14,5 @@ public class CoursePostDto {
 
     private double x;
     private double y;
+    private String previewImagePath;
 }

@@ -35,6 +35,9 @@ public class Course extends Auditable {
     @Column(name = "course_name", nullable = false)
     private String courseName;
 
+    @Column(name = "preview_image_path", nullable = false)
+    private String previewImagePath;
+
     @Column(nullable = false)
     private double x;
 

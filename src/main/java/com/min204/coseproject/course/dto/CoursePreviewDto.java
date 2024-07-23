@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class CoursePreviewDto {
     private Long courseId;
     private String courseName;
+    private String previewImagePath;
     private LocalDateTime lastUpdated;
-
 }
 

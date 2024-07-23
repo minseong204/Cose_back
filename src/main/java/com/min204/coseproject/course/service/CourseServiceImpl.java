@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.List;
@@ -84,6 +85,12 @@ public class CourseServiceImpl implements CourseService {
         Course updatedCourse = courseRepository.save(findCourse);
 
         return courseMapper.courseToCourseResponseDto(updatedCourse);
+    }
+
+    public void updatePreviewImagePathById(Long courseId, String previewImagePath) {
+        Course course = findVerifiedCourse(courseId);
+        course.setPreviewImagePath(previewImagePath);
+        courseRepository.save(course);
     }
 
     @Override

@@ -35,6 +35,13 @@ public class CourseController {
         return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, courseResponseDto, HttpStatus.OK.value());
     }
 
+    @PatchMapping("/image/{courseId}")
+    public ResponseEntity<?> patchPreviewImagePathToCourse(@Valid @RequestBody String previewImagePath,
+                                                           @PathVariable("courseId") Long courseId) {
+        courseService.updatePreviewImagePathById(courseId, previewImagePath);
+        return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, courseId.toString(), HttpStatus.OK.value());
+    }
+
     @GetMapping("/{courseId}")
     public ResponseEntity<?> getCourse(@PathVariable("courseId") Long courseId) {
         CourseResponseDto courseResponseDto = courseService.findCourse(courseId);

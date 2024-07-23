@@ -8,6 +8,7 @@ import java.util.List;
 public interface CourseService {
     CourseResponseDto createCourse(CoursePostDto coursePostDto);
     CourseResponseDto updateCourse(Long courseId, CoursePostDto coursePostDto);
+    void updatePreviewImagePathById(Long courseId, String previewImagePath);
     CourseResponseDto findCourse(Long courseId);
     List<CourseResponseDto> findCourses(int page, int size);
 

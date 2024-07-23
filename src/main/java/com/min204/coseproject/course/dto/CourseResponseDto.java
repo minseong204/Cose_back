@@ -15,6 +15,7 @@ public class CourseResponseDto {
     private String courseName;
     private double x;
     private double y;
+    private String previewImagePath;
     private List<PlaceDto> places;
 
 }

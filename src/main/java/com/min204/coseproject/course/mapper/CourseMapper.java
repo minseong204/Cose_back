@@ -23,6 +23,7 @@ public interface CourseMapper {
         course.setCourseName(requestBody.getCourseName());
         course.setX(requestBody.getX());
         course.setY(requestBody.getY());
+        course.setPreviewImagePath(requestBody.getPreviewImagePath());
 
         List<Place> places = requestBody.getPlaces().stream()
                 .map(this::placeDtoToPlace)
@@ -47,6 +48,7 @@ public interface CourseMapper {
                 .courseName(course.getCourseName())
                 .x(course.getX())
                 .y(course.getY())
+                .previewImagePath(course.getPreviewImagePath())
                 .places(placeDtos)
                 .build();
     }
@@ -60,6 +62,7 @@ public interface CourseMapper {
         return CoursePreviewDto.builder()
                 .courseId(course.getCourseId())
                 .courseName(course.getCourseName())
+                .previewImagePath(course.getPreviewImagePath())
                 .lastUpdated(lastUpdated)
                 .build();
     }
