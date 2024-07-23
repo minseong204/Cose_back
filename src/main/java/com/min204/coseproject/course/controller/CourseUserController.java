@@ -54,8 +54,7 @@ public class CourseUserController {
 
     // 코스 내 유저 그룹 전체 조회
     @GetMapping("/{courseId}/users")
-    public ResponseEntity<?> getAllUsersInCourse(
-            @PathVariable @NotNull Long courseId) {
+    public ResponseEntity<?> getAllUsersInCourse(@PathVariable @NotNull Long courseId) {
         List<CourseUserResponseDto> users = courseUserService.getAllUsersInCourse(courseId);
 
         return CoseResponse.toResponse(SuccessCode.FETCH_SUCCESS, users, HttpStatus.PARTIAL_CONTENT.value());
