@@ -12,6 +12,7 @@ import java.util.List;
 public class UserProfileResponseDto {
     private String nickname;
     private String email;
+    private String profileImagePath;
 
     @Data
     @Builder

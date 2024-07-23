@@ -36,6 +36,9 @@ public class User implements UserDetails {
     @Column(name = "nickname")
     private String nickname;
 
+    @Column(name = "profile_image_path")
+    private String profileImagePath;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "sign_up_date")

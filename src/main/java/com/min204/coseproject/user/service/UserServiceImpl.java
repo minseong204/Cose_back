@@ -65,6 +65,7 @@ public class UserServiceImpl implements UserService {
         return UserProfileResponseDto.builder()
                 .nickname(user.getNickname())
                 .email(user.getEmail())  // 주의: 원본 코드에는 email이 직접적으로 나타나지 않았습니다.
+                .profileImagePath(user.getProfileImagePath())
                 .build();
     }
 

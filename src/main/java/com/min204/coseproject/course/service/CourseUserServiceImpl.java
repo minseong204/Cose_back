@@ -80,6 +80,7 @@ public class CourseUserServiceImpl implements CourseUserService {
                 .courseId(mapping.getCourse().getCourseId())
                 .email(userDto.getEmail())
                 .name(userDto.getNickname())
+                .profileImagePath(userDto.getProfileImagePath())
                 .editPermission(mapping.getEditPermission())
                 .build();
     }
