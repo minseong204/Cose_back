@@ -1,7 +1,6 @@
 package com.min204.coseproject.user.service;
 
 import com.min204.coseproject.constant.ErrorCode;
-import com.min204.coseproject.content.repository.ContentRepository;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.follow.repository.FollowRepository;
@@ -35,7 +34,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RedisUtil redisUtil;
     private final PasswordEncoder passwordEncoder;
-    private final ContentRepository contentRepository;
     private final FollowRepository followRepository;
     private final CourseRepository courseRepository;
 

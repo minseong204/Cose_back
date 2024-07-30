@@ -3,6 +3,8 @@ package com.min204.coseproject.course.mapper;
 import com.min204.coseproject.course.dto.CoursePostDto;
 import com.min204.coseproject.course.dto.CoursePreviewDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
+import com.min204.coseproject.course.dto.CourseUserResponseDto;
+import com.min204.coseproject.course.entity.CourseUser;
 import com.min204.coseproject.place.dto.PlaceDto;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.place.entity.Place;
@@ -43,6 +45,10 @@ public interface CourseMapper {
                 .map(this::placeToPlaceDto)
                 .collect(Collectors.toList());
 
+        List<CourseUserResponseDto> courseUserResponseDtos = course.getCourseUsers().stream()
+                .map(this::courseUserToCourseUserResponseDto)
+                .collect(Collectors.toList());
+
         return CourseResponseDto.builder()
                 .courseId(course.getCourseId())
                 .courseName(course.getCourseName())
@@ -50,6 +56,7 @@ public interface CourseMapper {
                 .y(course.getY())
                 .previewImagePath(course.getPreviewImagePath())
                 .places(placeDtos)
+                .members(courseUserResponseDtos)
                 .build();
     }
 
@@ -105,10 +112,21 @@ public interface CourseMapper {
                 .build();
     }
 
-    default UserProfileResponseDto userToCourseUserResponseDto(User user) {
+    default UserProfileResponseDto userToUserProfileResponseDto(User user) {
         return UserProfileResponseDto.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
+                .profileImagePath(user.getProfileImagePath())
+                .build();
+    }
+
+    default CourseUserResponseDto courseUserToCourseUserResponseDto(CourseUser courseUser) {
+        return CourseUserResponseDto.builder()
+                .email(courseUser.getUser().getEmail())
+                .nickname(courseUser.getUser().getNickname())
+                .profileImagePath(courseUser.getUser().getProfileImagePath())
+                .editPermission(courseUser.getEditPermission())
+                .courseUserId(courseUser.getCourseUserId())
                 .build();
     }
 }

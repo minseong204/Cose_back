@@ -5,6 +5,7 @@ import lombok.*;
 
 @Getter
 @Setter
+@Builder
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,6 +14,7 @@ public class CourseUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "course_user_id")
     private Long courseUserId;
 
     @ManyToOne

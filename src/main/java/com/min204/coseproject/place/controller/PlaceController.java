@@ -21,9 +21,9 @@ public class PlaceController {
 
     private final PlaceServiceImpl placeService;
     @PatchMapping("/{placeId}")
-    public ResponseEntity<?> patchPlaceContent(@Valid @RequestBody String content,
+    public ResponseEntity<?> patchPlaceContent(@RequestBody(required = false) String content,
                                          @PathVariable("placeId") Long placeId) {
-
+        content = (content == null) ? "" : content;
         PlaceDto placeDto = placeService.updatePlaceContent(placeId, content);
         return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, placeDto, HttpStatus.OK.value());
     }

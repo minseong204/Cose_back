@@ -2,8 +2,6 @@ package com.min204.coseproject.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.min204.coseproject.constant.LoginType;
-import com.min204.coseproject.content.entity.Content;
-import com.min204.coseproject.scrap.entity.Scrap;
 import com.min204.coseproject.user.dto.req.UserRequestDto;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -59,10 +57,6 @@ public class User implements UserDetails {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "photo_id")
     private UserPhoto userPhoto;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "user", orphanRemoval = true)
-    private Set<Scrap> scraps = new HashSet<>();
 
     public void setUserPhoto(UserPhoto userPhoto) {
         this.userPhoto = userPhoto;

@@ -4,6 +4,7 @@ import com.min204.coseproject.constant.ErrorCode;
 import com.min204.coseproject.course.dto.CoursePostDto;
 import com.min204.coseproject.course.dto.CoursePreviewDto;
 import com.min204.coseproject.course.dto.CourseResponseDto;
+import com.min204.coseproject.course.dto.CourseUserResponseDto;
 import com.min204.coseproject.course.entity.Course;
 import com.min204.coseproject.course.entity.CourseUser;
 import com.min204.coseproject.course.repository.CourseUserRepository;
@@ -30,9 +31,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
-    private final CourseUserRepository courseUserRepository;
     private final CourseMapper courseMapper;
     private final UserService userService;
+    private final CourseUserService courseUserService;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -40,19 +41,23 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public CourseResponseDto createCourse(CoursePostDto coursePostDto) {
-        // 코스 생성
-        User currentUser = userService.getLoginMember();
         Course course = courseMapper.coursePostDtoToCourse(coursePostDto);
-        course.setUser(currentUser);
+        User currentUser = userService.getLoginMember();
+
+        // CourseUser 생성 및 관계 설정
+        CourseUser courseUser = CourseUser.builder()
+                .course(course)
+                .user(currentUser)
+                .editPermission(CourseUser.EditPermission.ADMIN)
+                .build();
+
+        // Course에 CourseUser 추가 (양방향 관계 설정)
+        course.addCourseUser(courseUser);
+
+        // Course 저장 (CascadeType.ALL로 인해 CourseUser도 함께 저장됨)
         Course savedCourse = courseRepository.save(course);
 
-        // 코스 생성자를 CourseUserMapped에 추가
-        CourseUser creatorMapping = new CourseUser();
-        creatorMapping.setCourse(savedCourse);
-        creatorMapping.setUser(currentUser);
-        creatorMapping.setEditPermission(CourseUser.EditPermission.ADMIN); // 생성자에게 ADMIN 권한 부여
-        courseUserRepository.save(creatorMapping);
-
+        // CourseResponseDto로 변환하여 반환
         return courseMapper.courseToCourseResponseDto(savedCourse);
     }
 
@@ -95,10 +100,12 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public CourseResponseDto findCourse(Long courseId) {
-        Course course = courseRepository.findCourseWithPlaces(courseId)
-                .orElseThrow(() -> new BusinessLogicException(ErrorCode.COURSE_NOT_FOUND));
+        Course course = courseRepository.findByIdWithPlacesAndUsers(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + courseId));
+
         return courseMapper.courseToCourseResponseDto(course);
     }
+
 
     @Override
     public List<CourseResponseDto> findCourses(int page, int size) {

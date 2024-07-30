@@ -17,7 +17,7 @@ public class CourseUserResponseDto {
 
     private String email;
 
-    private String name;
+    private String nickname;
     private String profileImagePath;
 
     private CourseUser.EditPermission editPermission;

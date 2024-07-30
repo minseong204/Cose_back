@@ -17,5 +17,5 @@ public class CourseResponseDto {
     private double y;
     private String previewImagePath;
     private List<PlaceDto> places;
-
+    private List<CourseUserResponseDto> members;
 }

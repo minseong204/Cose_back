@@ -73,13 +73,13 @@ public class CourseUserServiceImpl implements CourseUserService {
     }
 
     private CourseUserResponseDto mapToDto(CourseUser mapping) {
-        UserProfileResponseDto userDto = courseMapper.userToCourseUserResponseDto(mapping.getUser());
+        UserProfileResponseDto userDto = courseMapper.userToUserProfileResponseDto(mapping.getUser());
 
         return CourseUserResponseDto.builder()
                 .courseUserId(mapping.getCourseUserId())
                 .courseId(mapping.getCourse().getCourseId())
                 .email(userDto.getEmail())
-                .name(userDto.getNickname())
+                .nickname(userDto.getNickname())
                 .profileImagePath(userDto.getProfileImagePath())
                 .editPermission(mapping.getEditPermission())
                 .build();
