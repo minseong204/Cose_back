@@ -29,17 +29,15 @@ public class CourseController {
     }
 
     @PatchMapping("/{courseId}")
-    public ResponseEntity<?> patchCourse(@Valid @RequestBody CoursePostDto requestBody,
-                                         @PathVariable("courseId") Long courseId) {
+    public ResponseEntity<?> patchCourse(@Valid @RequestBody CoursePostDto requestBody, @PathVariable("courseId") Long courseId) {
         CourseResponseDto courseResponseDto = courseService.updateCourse(courseId, requestBody);
         return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, courseResponseDto, HttpStatus.OK.value());
     }
 
     @PatchMapping("/image/{courseId}")
-    public ResponseEntity<?> patchPreviewImagePathToCourse(@Valid @RequestBody String previewImagePath,
-                                                           @PathVariable("courseId") Long courseId) {
+    public ResponseEntity<?> patchPreviewImagePathToCourse(@Valid @RequestBody String previewImagePath, @PathVariable("courseId") Long courseId) {
         courseService.updatePreviewImagePathById(courseId, previewImagePath);
-        return CoseResponse.toResponse(SuccessCode.COURSE_UPDATED, courseId.toString(), HttpStatus.OK.value());
+        return CoseResponse.toResponse(SuccessCode.COURSE_IMAGE_UPDATED, courseId.toString(), HttpStatus.OK.value());
     }
 
     @GetMapping("/{courseId}")
@@ -49,8 +47,7 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getCourses(@RequestParam("page") int page,
-                                        @RequestParam("size") int size) {
+    public ResponseEntity<?> getCourses(@RequestParam("page") int page, @RequestParam("size") int size) {
         List<CoursePreviewDto> courses = courseService.findPreviewCourses(page, size);
         return CoseResponse.toResponse(SuccessCode.FETCH_SUCCESS, courses, HttpStatus.PARTIAL_CONTENT.value());
     }

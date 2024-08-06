@@ -14,6 +14,7 @@ public enum SuccessCode implements BodyCode {
     FETCH_SUCCESS("206 PARTIAL_CONTENT", "정보 조회 완료"),
     COURSE_CREATED("201 CREATED", "코스 생성 완료"),
     COURSE_UPDATED("205 RESET_CONTENT", "코스 수정 완료"),
+    COURSE_IMAGE_UPDATED("205 RESET_CONTENT", "코스 미리보기 이미지 수정 완료"),
     COURSE_DELETED("200 OK", "코스 삭제 완료"),
     CONTENT_CREATED("201 CREATED", "게시물 생성 완료"),
     CONTENT_UPDATED("205 RESET_CONTENT", "게시물 수정 완료"),
