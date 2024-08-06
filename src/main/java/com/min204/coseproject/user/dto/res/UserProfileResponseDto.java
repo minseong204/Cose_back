@@ -1,25 +1,18 @@
 package com.min204.coseproject.user.dto.res;
 
-import com.min204.coseproject.course.dto.PlaceDto;
+import com.min204.coseproject.place.dto.PlaceDto;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 
 import java.util.List;
+
 
 @Data
 @Builder
 public class UserProfileResponseDto {
     private String nickname;
-    private int postCount;
-    private List<ContentDto> posts;
-    private int followerCount;
-    private List<UserDto> followers;
-    private int followingCount;
-    private List<UserDto> following;
+    private String email;
     private String profileImagePath;
-    private int courseCount;
-    private List<CourseDto> courses;
 
     @Data
     @Builder

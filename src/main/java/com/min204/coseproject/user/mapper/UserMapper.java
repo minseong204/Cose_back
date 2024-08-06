@@ -1,5 +1,9 @@
 package com.min204.coseproject.user.mapper;
 
+import com.min204.coseproject.course.dto.CoursePostDto;
+import com.min204.coseproject.course.dto.CourseUserResponseDto;
+import com.min204.coseproject.course.entity.Course;
+import com.min204.coseproject.place.entity.Place;
 import com.min204.coseproject.user.dto.res.ResponseUserInfoDto;
 import com.min204.coseproject.user.entity.User;
 import com.min204.coseproject.user.service.UserService;
@@ -9,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor

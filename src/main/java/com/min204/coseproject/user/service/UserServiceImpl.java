@@ -1,8 +1,6 @@
 package com.min204.coseproject.user.service;
 
 import com.min204.coseproject.constant.ErrorCode;
-import com.min204.coseproject.content.repository.ContentRepository;
-import com.min204.coseproject.course.dto.PlaceDto;
 import com.min204.coseproject.course.repository.CourseRepository;
 import com.min204.coseproject.exception.BusinessLogicException;
 import com.min204.coseproject.follow.repository.FollowRepository;
@@ -23,11 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,7 +34,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RedisUtil redisUtil;
     private final PasswordEncoder passwordEncoder;
-    private final ContentRepository contentRepository;
     private final FollowRepository followRepository;
     private final CourseRepository courseRepository;
 
@@ -66,77 +60,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserProfileResponseDto buildUserProfileResponse(User user) {
-        int postCount = contentRepository.countByUser(user);
-        int followerCount = followRepository.countByFollowee(user);
-        int followingCount = followRepository.countByFollower(user);
-        int courseCount = courseRepository.countByUser(user);
-
-        List<UserProfileResponseDto.ContentDto> posts = contentRepository.findAllByUser(user).stream()
-                .map(content -> UserProfileResponseDto.ContentDto.builder()
-                        .contentId(content.getContentId())
-                        .courses(content.getCourses().stream()
-                                .map(course -> UserProfileResponseDto.CourseDto.builder()
-                                        .courseId(course.getCourseId())
-                                        .courseName(course.getCourseName())
-                                        .places(course.getPlaces().stream()
-                                                .map(place -> PlaceDto.builder()
-                                                        .placeName(place.getPlaceName())
-                                                        .address(place.getAddress())
-                                                        .placeUrl(place.getPlaceUrl())
-                                                        .categoryGroupName(place.getCategoryGroupName())
-                                                        .x(place.getX())
-                                                        .y(place.getY())
-                                                        .build())
-                                                .collect(Collectors.toList()))
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
-                .collect(Collectors.toList());
-
-        List<UserProfileResponseDto.UserDto> followers = followRepository.findByFollowee(user).stream()
-                .map(follow -> UserProfileResponseDto.UserDto.builder()
-                        .userId(follow.getFollower().getUserId())
-                        .email(follow.getFollower().getEmail())
-                        .build())
-                .collect(Collectors.toList());
-
-        List<UserProfileResponseDto.UserDto> following = followRepository.findByFollower(user).stream()
-                .map(follow -> UserProfileResponseDto.UserDto.builder()
-                        .userId(follow.getFollowee().getUserId())
-                        .email(follow.getFollowee().getEmail())
-                        .build())
-                .collect(Collectors.toList());
-
-        List<UserProfileResponseDto.CourseDto> courses = courseRepository.findAllByUser(user).stream()
-                .map(course -> UserProfileResponseDto.CourseDto.builder()
-                        .courseId(course.getCourseId())
-                        .courseName(course.getCourseName())
-                        .places(course.getPlaces().stream()
-                                .map(place -> PlaceDto.builder()
-                                        .placeName(place.getPlaceName())
-                                        .address(place.getAddress())
-                                        .placeUrl(place.getPlaceUrl())
-                                        .categoryGroupName(place.getCategoryGroupName())
-                                        .x(place.getX())
-                                        .y(place.getY())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .build())
-                .collect(Collectors.toList());
-
-        String profileImagePath = user.getUserPhoto() != null ? user.getUserPhoto().getFilePath() : DEFAULT_IMAGE_PATH;
-
         return UserProfileResponseDto.builder()
                 .nickname(user.getNickname())
-                .postCount(postCount)
-                .posts(posts)
-                .followerCount(followerCount)
-                .followers(followers)
-                .followingCount(followingCount)
-                .following(following)
-                .profileImagePath(profileImagePath)
-                .courseCount(courseCount)
-                .courses(courses)
+                .email(user.getEmail())  // 주의: 원본 코드에는 email이 직접적으로 나타나지 않았습니다.
+                .profileImagePath(user.getProfileImagePath())
                 .build();
     }
 
