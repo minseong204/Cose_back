@@ -1,7 +1,8 @@
-package com.min204.coseproject.course.entity;
+package com.min204.coseproject.place.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.min204.coseproject.audit.Auditable;
+import com.min204.coseproject.course.entity.Course;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,6 +36,9 @@ public class Place extends Auditable {
 
     @Column(nullable = false)
     private String categoryGroupName;
+
+    @Column(nullable = false)
+    private String content;
 
     @Column(nullable = false)
     private double x;

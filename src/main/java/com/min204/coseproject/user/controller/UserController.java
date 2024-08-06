@@ -144,18 +144,46 @@ public class UserController {
 
     @PostMapping("/profile-photo")
     public ResponseEntity<ResBodyModel> updateProfilePhoto(@RequestParam("userId") Long userId,
-                                                           @RequestParam("file") MultipartFile file) {
+                                                           @RequestParam("file") String file) {
         try {
-            User localUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
-
-            UserPhoto userPhoto = userFileHandler.parseFileInfo(file, localUser);
-            localUser.setUserPhoto(userPhoto);
-            userRepository.save(localUser);
+            User user = userRepository.findById(userId).orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
+            user.setProfileImagePath(file);
+            userRepository.save(user);
             return CoseResponse.toResponse(SuccessCode.SUCCESS, "로컬 사용자의 프로필 사진이 업데이트되었습니다.");
         } catch (Exception e) {
             log.error("Error updating profile photo: ", e);
             return CoseResponse.toErrorResponse("프로필 사진을 업데이트하는 중에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
     }
+
+    @PostMapping("/name")
+    public ResponseEntity<ResBodyModel> updateNickname(@RequestParam("userId") Long userId,
+                                                           @RequestParam("name") String nickname) {
+        try {
+            User user = userRepository.findById(userId).orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
+            user.setNickname(nickname);
+            userRepository.save(user);
+            return CoseResponse.toResponse(SuccessCode.SUCCESS, "로컬 사용자의 닉네임이 업데이트되었습니다.");
+        } catch (Exception e) {
+            log.error("Error updating nickname: ", e);
+            return CoseResponse.toErrorResponse("닉네임을 업데이트하는 중에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
+    }
+
+//    @PostMapping("/profile-photo")
+//    public ResponseEntity<ResBodyModel> updateProfilePhoto(@RequestParam("userId") Long userId,
+//                                                           @RequestParam("file") MultipartFile file) {
+//        try {
+//            User localUser = userRepository.findById(userId)
+//                    .orElseThrow(() -> new BusinessLogicException(ErrorCode.USER_NOT_FOUND));
+//
+//            UserPhoto userPhoto = userFileHandler.parseFileInfo(file, localUser);
+//            localUser.setUserPhoto(userPhoto);
+//            userRepository.save(localUser);
+//            return CoseResponse.toResponse(SuccessCode.SUCCESS, "로컬 사용자의 프로필 사진이 업데이트되었습니다.");
+//        } catch (Exception e) {
+//            log.error("Error updating profile photo: ", e);
+//            return CoseResponse.toErrorResponse("프로필 사진을 업데이트하는 중에 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        }
+//    }
 }
